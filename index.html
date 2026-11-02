@@ -241,7 +241,7 @@
         <p class="eyebrow">教学应用</p>
         <h2 id="projects-title">让程序在提交前先被看懂</h2>
         <p class="section__lead">
-          课堂上最常见的返工，来自指令格式、刀补方向与坐标系这类「看得见却容易错」的细节。下面两件工具围绕同一件事：把抽象的 G 代码变得可读、可查、可验证。直接在浏览器里运行，不用安装。
+          课堂上最常见的返工，来自指令格式、刀补方向与坐标系这类「看得见却容易错」的细节。下面三件工具围绕同一件事：把抽象的 G 代码变得可读、可查、可验证。直接在浏览器里运行，不用安装。
         </p>
       </div>
 
@@ -300,57 +300,62 @@
         </div>
       </article>
 
-      <article class="feature reveal">
-        <div class="feature__body">
-          <div class="feature__head">
-            <h3 class="feature__title">FANUC 铣削编程助手</h3>
+      <div class="apps__head reveal">
+        <h3 class="apps__title">FANUC 铣削编程助手 · 两版并列</h3>
+        <p class="apps__lead">同一套教学思路的两个版本，按场景选一个：备课走全流程，课堂上要快要轻。</p>
+      </div>
+
+      <div class="grid grid--2">
+        <article class="card app-card reveal">
+          <div class="app-card__head">
+            <h3 class="card__title">FANUC 铣削编程助手</h3>
             <span class="badge badge--live">已上线</span>
           </div>
-          <p class="feature__desc">
-            从查指令到验程序的完整工具链：51 条 G/M 指令速查、标准程序模板与切削参数计算，写完之后逐行解释，
-            按 43 条规则校验，再在 2D 刀轨上分步看走刀与刀补偏置。课堂投屏演示和学生课后自练都能用。
+          <p class="app-card__tagline">全流程 · 备课与批改 · v1.18</p>
+          <p class="card__desc">
+            十个面板串成一条完整作业链：51 条指令速查、6 个标准程序模板、切削参数计算（n / F / Q / Pc / Pm 随材料联动）、
+            逐行解释、43 条规则校验，再到分步播放的 2D 刀轨与尺寸核对。备课时把一套程序从头到尾走一遍。
           </p>
-          <dl class="stats">
-            <div class="stat">
-              <dt>指令速查</dt>
-              <dd>51<span>条</span></dd>
-            </div>
-            <div class="stat">
-              <dt>校验规则</dt>
-              <dd>43<span>条</span></dd>
-            </div>
-            <div class="stat">
-              <dt>功能面板</dt>
-              <dd>10<span>个</span></dd>
-            </div>
-          </dl>
-          <div class="feature__actions">
-            <a class="btn btn--primary" href="https://jfsite.github.io/fanc-milling-assistant/" target="_blank" rel="noopener noreferrer">
+          <ul class="tags" aria-label="能力要点">
+            <li>参数计算</li>
+            <li>43 条校验</li>
+            <li>分步刀轨</li>
+          </ul>
+          <div class="app-card__links">
+            <a class="btn btn--primary btn--sm" href="https://jfsite.github.io/fanc-milling-assistant/" target="_blank" rel="noopener noreferrer">
               打开应用
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg>
               <span class="visually-hidden">（在新标签页打开）</span>
             </a>
-            <a class="btn btn--ghost" href="https://github.com/jfsite/fanc-milling-assistant" target="_blank" rel="noopener noreferrer">
-              查看源码
-              <span class="visually-hidden">（在新标签页打开）</span>
-            </a>
+            <a class="btn btn--ghost btn--sm" href="https://github.com/jfsite/fanc-milling-assistant" target="_blank" rel="noopener noreferrer">源码</a>
           </div>
-        </div>
+        </article>
 
-        <div class="feature__aside" aria-hidden="true">
-          <div class="lookup-card">
-            <p class="lookup-card__head">G 代码速查</p>
-            <ul class="lookup-list">
-              <li><code>G41 / G42</code><span>刀具半径左 / 右补偿</span></li>
-              <li><code>G43 H</code><span>刀具长度补偿</span></li>
-              <li><code>G52</code><span>局部坐标系偏移</span></li>
-              <li><code>G68</code><span>坐标系旋转</span></li>
-              <li><code>G81 / G83</code><span>钻孔 / 深孔钻削循环</span></li>
-            </ul>
-            <p class="lookup-card__note">常用指令集 · 点选即可查看用法</p>
+        <article class="card app-card reveal">
+          <div class="app-card__head">
+            <h3 class="card__title">FANUC 铣削编程助手（轻量）</h3>
+            <span class="badge badge--live">已上线</span>
           </div>
-        </div>
-      </article>
+          <p class="app-card__tagline">轻量 · 课堂即讲即用 · v3.15</p>
+          <p class="card__desc">
+            打开就能用的版本：载入示例或粘贴一段程序，逐行解释每个地址字在说什么，同时在 XY 平面画出刀轨与刀补示意线，
+            支持全屏放大。课堂上当场讲一段程序、学生对着自己的作业自查，都够快。
+          </p>
+          <ul class="tags" aria-label="能力要点">
+            <li>逐行解释</li>
+            <li>刀轨预览</li>
+            <li>刀补示意</li>
+          </ul>
+          <div class="app-card__links">
+            <a class="btn btn--primary btn--sm" href="https://jfsite.github.io/fanuc-cnc-helper/" target="_blank" rel="noopener noreferrer">
+              打开应用
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg>
+              <span class="visually-hidden">（在新标签页打开）</span>
+            </a>
+            <a class="btn btn--ghost btn--sm" href="https://github.com/jfsite/fanuc-cnc-helper" target="_blank" rel="noopener noreferrer">源码</a>
+          </div>
+        </article>
+      </div>
     </div>
   </section>
 
