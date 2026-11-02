@@ -655,6 +655,69 @@ img, svg {
   margin-top: 26px;
 }
 
+/* 多个应用纵向排列时的呼吸间距 */
+.feature + .feature {
+  margin-top: clamp(16px, 2.5vw, 24px);
+}
+
+/* 速查卡：与代码卡同尺寸，但走浅色，避免两块深色并排过重 */
+.lookup-card {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.lookup-card__head {
+  padding: 12px 18px;
+  background: var(--bg-soft);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.lookup-list {
+  padding: 8px;
+}
+
+.lookup-list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px;
+  border-radius: 8px;
+  transition: background-color 0.18s var(--ease);
+}
+
+.lookup-list li:hover {
+  background: var(--accent-soft);
+}
+
+.lookup-list code {
+  flex: none;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.lookup-list span {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+.lookup-card__note {
+  padding: 10px 18px 14px;
+  border-top: 1px dashed var(--border);
+  color: var(--text-faint);
+  font-size: 0.74rem;
+}
+
 /* 代码卡：模拟编辑器窗口 */
 .code-card {
   overflow: hidden;

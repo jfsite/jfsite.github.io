@@ -238,10 +238,10 @@
   <section class="section section--soft" id="projects" aria-labelledby="projects-title">
     <div class="container">
       <div class="section__head reveal">
-        <p class="eyebrow">教学工具</p>
-        <h2 id="projects-title">把错误暴露在提交之前</h2>
+        <p class="eyebrow">教学应用</p>
+        <h2 id="projects-title">让程序在提交前先被看懂</h2>
         <p class="section__lead">
-          课堂上最常见的返工，来自指令格式、刀补方向与坐标系这类「看得见却容易错」的细节。于是有了下面这个在浏览器里运行的检查工具。
+          课堂上最常见的返工，来自指令格式、刀补方向与坐标系这类「看得见却容易错」的细节。下面两件工具围绕同一件事：把抽象的 G 代码变得可读、可查、可验证。直接在浏览器里运行，不用安装。
         </p>
       </div>
 
@@ -296,6 +296,58 @@
 <em>N90</em> M05
 <em>N100</em> M30</code></pre>
             <p class="code-card__note">检测通过 · 12 项检查 · 0 处告警</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="feature reveal">
+        <div class="feature__body">
+          <div class="feature__head">
+            <h3 class="feature__title">FANUC 铣削编程助手</h3>
+            <span class="badge badge--live">已上线</span>
+          </div>
+          <p class="feature__desc">
+            面向 FANUC 0i 常用指令集的编程辅助工具：在编辑器里写完程序，逐行解释每段代码在执行什么，
+            同步预览 XY 平面刀轨，并对刀补方向、坐标系这类常见错误给出提示。适合课堂投屏演示，也适合学生课后自己练。
+          </p>
+          <dl class="stats">
+            <div class="stat">
+              <dt>逐行解释</dt>
+              <dd>实时</dd>
+            </div>
+            <div class="stat">
+              <dt>指令速查</dt>
+              <dd>G/M</dd>
+            </div>
+            <div class="stat">
+              <dt>刀轨预览</dt>
+              <dd>2D</dd>
+            </div>
+          </dl>
+          <div class="feature__actions">
+            <a class="btn btn--primary" href="https://jfsite.github.io/fanuc-cnc-helper/" target="_blank" rel="noopener noreferrer">
+              打开应用
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg>
+              <span class="visually-hidden">（在新标签页打开）</span>
+            </a>
+            <a class="btn btn--ghost" href="https://github.com/jfsite/fanuc-cnc-helper" target="_blank" rel="noopener noreferrer">
+              查看源码
+              <span class="visually-hidden">（在新标签页打开）</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="feature__aside" aria-hidden="true">
+          <div class="lookup-card">
+            <p class="lookup-card__head">G 代码速查</p>
+            <ul class="lookup-list">
+              <li><code>G41 / G42</code><span>刀具半径左 / 右补偿</span></li>
+              <li><code>G43 H</code><span>刀具长度补偿</span></li>
+              <li><code>G52</code><span>局部坐标系偏移</span></li>
+              <li><code>G68</code><span>坐标系旋转</span></li>
+              <li><code>G81 / G83</code><span>钻孔 / 深孔钻削循环</span></li>
+            </ul>
+            <p class="lookup-card__note">常用指令集 · 点选即可查看用法</p>
           </div>
         </div>
       </article>
