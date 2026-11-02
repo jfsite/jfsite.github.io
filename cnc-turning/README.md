@@ -6,7 +6,11 @@ FANUC 车床（0i-T）编程教学工具。单文件 Web 应用，零依赖、�
 
 ## 当前进度：v1.1.0，十个面板全部可用并已发布
 
-**在线使用**：https://cnc-turning-aid.app.workbuddy.host/?sharecode=WLNRXF7CAQ
+**在线使用**
+- GitHub Pages：https://jfsite.github.io/cnc-turning/
+- WorkBuddy 托管：https://cnc-turning-aid.app.workbuddy.host/?sharecode=WLNRXF7CAQ
+
+**源码**：推送在 `jfsite/jfsite.github.io` 仓库的 `cnc-turning/` 目录下（含 app.html、测试、冒烟与规划文档）。
 
 | 能力 | 状态 |
 |---|---|
