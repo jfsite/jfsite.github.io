@@ -415,9 +415,19 @@ img, svg {
   letter-spacing: -0.02em;
 }
 
+/* 定位句：介于主标题与正文之间的一层，字号与字重都压一档 */
+.hero__tagline {
+  margin-top: 14px;
+  color: var(--text);
+  font-size: clamp(1.04rem, 2vw, 1.22rem);
+  font-weight: 500;
+  line-height: 1.6;
+  letter-spacing: -0.005em;
+}
+
 .hero__lead {
   max-width: 34em;
-  margin-top: 18px;
+  margin-top: 14px;
   color: var(--text-muted);
   font-size: clamp(0.98rem, 1.7vw, 1.06rem);
 }
