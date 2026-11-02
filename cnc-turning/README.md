@@ -8,7 +8,7 @@ FANUC 车床（0i-T）编程教学工具。单文件 Web 应用，零依赖、�
 
 **在线使用**
 - GitHub Pages：https://jfsite.github.io/cnc-turning/
-- WorkBuddy 托管：https://cnc-turning-aid.app.workbuddy.host/?sharecode=WLNRXF7CAQ
+- WorkBuddy 托管：https://cnc-turning-aid.app.workbuddy.host/app.html?sharecode=WLNRXF7CAQ （必须直连 `app.html`；根路径 `/?sharecode=...` 跳转时会丢掉 sharecode，落到 403）
 
 **源码**：推送在 `jfsite/jfsite.github.io` 仓库的 `cnc-turning/` 目录下（含 app.html、测试、冒烟与规划文档）。
 
