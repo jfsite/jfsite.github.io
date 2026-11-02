@@ -1,0 +1,71 @@
+'use strict';
+/**
+ * 校验反例语料：每条规则的「必须被检出」样本。
+ * 约定：case.rule 指定的规则必须在这段程序上产生至少一条问题；
+ *       其他规则同时报错不算失败（真实程序往往同时有多处问题）。
+ */
+const BAD = [
+  /* 结构 9 */
+  {rule:'S01', code:'G21 G99 G54;\nT0101;\nM03 S800;\nG00 X52 Z2;\nG01 Z-10 F0.2;\nM30;'},
+  {rule:'S02', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG00 X52 Z2;\nG01 Z-10 F0.2;'},
+  {rule:'S03', code:'O0001;\nG99 G54;\nT0101;\nM03 S800;\nG00 X52 Z2;\nG01 Z-10 F0.2;\nM30;'},
+  {rule:'S04', code:'O0001;\nG21 G54;\nT0101;\nM03 S800;\nG00 X52 Z2;\nG01 Z-10 F0.2;\nM30;'},
+  {rule:'S05', code:'O0001;\nG21 G99;\nT0101;\nM03 S800;\nG00 X52 Z2;\nG01 Z-10 F0.2;\nM30;'},
+  {rule:'S06', code:'O0001;\nG21 G99 G54;\nT101;\nM03 S800;\nG00 X52 Z2;\nG01 Z-10 F0.2;\nM30;'},
+  {rule:'S07', code:'O0001;\nG21 G99 G54;\nT0102;\nM03 S800;\nG00 X52 Z2;\nG01 Z-10 F0.2;\nM30;'},
+  {rule:'S08', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG00 X52 Z2;\nG01 Z-10 F0.2;\nM30;\nG00 X0 Z0;'},
+  {rule:'S09', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nO0001;\nG00 X52 Z2;\nM30;'},
+
+  /* 循环 15 */
+  {rule:'C01', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG00 X52 Z2;\nG71 U2 R1;\nG71 U0.5 W0.1 F0.25;\nM30;'},
+  {rule:'C02', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG71 U2 R1;\nG71 P10 Q99 U0.5 W0.1 F0.25;\nN10 G01 X50;\nN20 X52;\nM30;'},
+  {rule:'C03', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG71 U2 R1;\nG71 P10 Q20 U0.5 W0.1 F0.25;\nN10 G01 X50;\nX30;\nX50;\nN20 X52;\nM30;'},
+  {rule:'C04', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG71 R1;\nG71 P10 Q20 U0.5 W0.1 F0.25;\nN10 G01 X50;\nN20 X52;\nM30;'},
+  {rule:'C05', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG71 U2 R1;\nG71 P10 Q20 U-0.5 W0.1 F0.25;\nN10 G01 X30;\nX50;\nN20 X52;\nM30;'},
+  {rule:'C06', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG71 U2 R1;\nG71 P10 Q20 U2.5 W0.1 F0.25;\nN10 G01 X30;\nX50;\nN20 X52;\nM30;'},
+  {rule:'C07', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG71 U2 R1;\nG71 P10 Q20 U0.5 W0.1 F0.25;\nN10 G01 X30;\nN20 X52;\nG70 P10 Q30;\nN30 X60;\nM30;'},
+  {rule:'C08', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG73 U6 R4;\nG73 P10 Q20 U0.4 W0.1 F0.2;\nN10 G01 X30;\nN20 X52;\nM30;'},
+  {rule:'C09', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG72 W2 R1;\nG72 P10 Q20 U0.1 W3 F0.2;\nN10 G01 Z-30;\nN20 Z0;\nM30;'},
+  {rule:'C10', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG00 X52 Z-30;\nG75 X40 F0.08;\nM30;'},
+  {rule:'C11', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG00 X40 Z-30;\nG75 R0.5;\nG75 X45 P2000 F0.08;\nM30;'},
+  {rule:'C12', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG00 X32 Z4;\nG76 P2106 Q100 R0.05;\nG76 X25.45 Z-28 P2273 Q400 F3.5;\nM30;'},
+  {rule:'C13', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG00 X32 Z4;\nG76 P021060 Q100 R0.05;\nG76 X25.45 Z-28 P2900 Q400 F3.5;\nM30;'},
+  {rule:'C14', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG00 X32 Z4;\nG76 P021060 Q100 R0.05;\nG76 Z-28 P2273 Q400 F3.5;\nM30;'},
+  {rule:'C15', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG71 U2 R1;\nG71 P10 Q20 U0.5 W0.1 F0.25;\nN10 G01 X30;\nT0202;\nX50;\nN20 X52;\nM30;'},
+
+  /* 刀补 7 */
+  {rule:'T01', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG00 X52 Z2;\nG01 G41 X48 Z0 F0.2;\nG01 Z-20;\nG01 X52;\nM30;'},
+  {rule:'T02', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG00 X52 Z2;\nG02 G41 X40 Z-10 R5 F0.2;\nM30;'},
+  {rule:'T03', code:'O0001;\nG21 G99 G54;\nT0909;\nM03 S800;\nG00 X52 Z2;\nG01 Z-10 F0.2;\nM30;'},
+  {rule:'T04', code:'O0001;\nG21 G99 G54;\nT0202;\nM03 S800;\nG00 X20 Z2;\nG01 G42 X24 Z0 F0.2;\nG01 Z-10;\nG40 X20;\nM30;'},
+  {rule:'T05', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG00 X50 Z0;\nG01 G41 X50.2 Z0 F0.2;\nG01 Z-10;\nG40 X52;\nM30;'},
+  {rule:'T06', code:'O0001;\nG21 G99 G54;\nT0303;\nM03 S800;\nG00 X52 Z-20;\nG01 G41 X48 Z-20 F0.1;\nG40 X52;\nM30;'},
+  {rule:'T07', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG00 X30 Z0;\nG01 X40 Z-10 F0.2;\nM30;'},
+
+  /* 螺纹 7 */
+  {rule:'M01', code:'O0001;\nG21 G99 G54;\nT0404;\nG97 S600 M03;\nG00 X32 Z4;\nG32 Z-28;\nM30;'},
+  {rule:'M02', code:'O0001;\nG21 G99 G54;\nT0404;\nG97 S600 M03;\nG00 X32 Z4;\nG92 X28 Z-28 F1.5;\nM30;'},
+  {rule:'M03', code:'O0001;\nG21 G99 G54;\nT0404;\nG50 S1800;\nG96 S150 M03;\nG00 X32 Z4;\nG92 X28 Z-28 F3.5;\nM30;'},
+  {rule:'M04', code:'O0001;\nG21 G99 G54;\nT0404;\nG97 S600 M03;\nG00 X32 Z4;\nG92 X28 Z-64 F3.5;\nM30;'},
+  {rule:'M05', code:'O0001;\nG21 G99 G54;\nT0404;\nG97 S600 M03;\nG00 X32 Z4;\nG92 X28 Z-28 F3.5;\nX23;\nM30;'},
+  {rule:'M06', code:'O0001;\nG21 G99 G54;\nT0404;\nG97 S600 M03;\nG00 X32 Z4;\nG76 P021060 Q100 R0.05;\nG76 X25.45 Z-28 P2273 Q400 F3.5;\nG92 X28 Z-28 F3.5;\nM30;'},
+  {rule:'M07', code:'O0001;\nG21 G99 G54;\nT0404;\nG97 S1500 M03;\nG00 X32 Z4;\nG92 X28 Z-28 F3.5;\nM30;'},
+
+  /* 参数安全 8 */
+  {rule:'P01', code:'O0001;\nG21 G99 G54;\nT0101;\nG00 X52 Z2;\nG01 Z-10 F0.2;\nM30;'},
+  {rule:'P02', code:'O0001;\nG21 G99 G54;\nT0101;\nG96 S150 M03;\nG00 X52 Z2;\nG01 Z-10 F0.2;\nM30;'},
+  {rule:'P03', code:'O0001;\nG21 G99 G54;\nT0101;\nG50 S3000;\nG96 S300 M03;\nG00 X52 Z2;\nG01 Z-10 F0.2;\nM30;'},
+  {rule:'P04', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG00 X25 Z2;\nG01 Z-10 F0.2;\nM30;'},
+  {rule:'P05', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG00 X52 Z2;\nG01 Z-70 F0.2;\nM30;'},
+  {rule:'P06', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG00 X52 Z2;\nG01 Z-10 F0.2;\nM30;'},
+  {rule:'P07', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG00 X52 Z2;\nG01 Z-10 F2.0;\nM30;'},
+  {rule:'P08', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG71 U6 R1;\nG71 P10 Q20 U0.5 W0.1 F0.25;\nN10 G01 X30;\nN20 X52;\nM30;'},
+
+  /* 尺寸 4 */
+  {rule:'D01', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG71 U2 R1;\nG71 P10 Q20 U0 W0 F0.25;\nN10 G01 X30;\nN20 X52;\nM30;'},
+  {rule:'D02', code:'O0001;\nG21 G99 G54;\nT0303;\nM03 S800;\nG00 X52 Z-80;\nG75 R0.5;\nG75 X0 P2000 F0.06;\nM30;'},
+  {rule:'D03', code:'O0001;\nG21 G99 G54;\nT0303;\nM03 S800;\nG00 X52 Z-30;\nG75 R0.5;\nG75 X40 P2000 F0.08;\nG00 Z-31;\nG75 X40 P2000 F0.08;\nM30;'},
+  {rule:'D04', code:'O0001;\nG21 G99 G54;\nT0101;\nM03 S800;\nG00 X30 Z0;\nG01 X32 Z-1 C5 F0.2;\nM30;'}
+];
+
+module.exports = {BAD: BAD};

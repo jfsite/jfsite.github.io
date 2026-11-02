@@ -1,0 +1,3273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>数控车削编程助手 · FANUC 0i-T</title>
+<style>
+:root{
+  --brand:#4f46e5; --brand-strong:#4338ca; --brand-bg:#eef0fe;
+  --accent:#0f766e; --accent-bg:#e6f4f1;
+  --bg:#f2f4f7; --card:#ffffff;
+  --line:rgba(16,19,34,.10); --line2:rgba(16,19,34,.18);
+  --txt:#101322; --sub:#5c6070; --muted:#8b8f9c;
+  --danger:#b42318; --danger-bg:#fdecea; --warn:#b45309; --warn-bg:#fdf3e6;
+  --ok:#0f766e; --r:10px;
+  --mono:ui-monospace,"Cascadia Mono","Consolas","Courier New",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--txt); font:14px/1.55 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{margin:0;font-weight:500}
+.head{background:var(--card);border-bottom:1px solid var(--line);padding:12px 20px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.head .brand{font-size:16px;font-weight:500;letter-spacing:.2px}
+.head .ver{font:12px/1 var(--mono);color:var(--muted);border:1px solid var(--line2);border-radius:20px;padding:3px 8px}
+.head .hint{color:var(--sub);font-size:12px;margin-left:auto}
+
+.cardbar{background:var(--card);border-bottom:1px solid var(--line);padding:10px 20px}
+.cardbar .row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:12px;color:var(--sub)}
+.field input,.field select{
+  height:34px;border:1px solid var(--line2);border-radius:8px;background:#fff;color:var(--txt);
+  padding:0 8px;font:13px/34px var(--mono);width:88px;
+}
+.field select{font-family:inherit;width:150px}
+.field input:invalid{border-color:var(--danger)}
+.cardbar .acts{display:flex;gap:8px;margin-left:auto}
+.btn{height:34px;padding:0 14px;border:1px solid var(--line2);border-radius:8px;background:#fff;color:var(--txt);font:13px/1 inherit;cursor:pointer}
+.btn:hover{border-color:var(--brand);color:var(--brand)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-strong)}
+.card-issues{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+.pill{font-size:12px;border-radius:20px;padding:3px 10px;border:1px solid transparent}
+.pill.ok{background:var(--accent-bg);color:var(--ok)}
+.pill.bad{background:var(--danger-bg);color:var(--danger)}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+
+nav{position:sticky;top:0;z-index:5;background:linear-gradient(#fff,#fff);border-bottom:1px solid var(--line);padding:8px 20px;display:flex;gap:6px;overflow-x:auto}
+nav button{
+  border:1px solid transparent;background:transparent;color:var(--sub);font:13px/1 inherit;
+  padding:8px 12px;border-radius:20px;cursor:pointer;white-space:nowrap;flex:0 0 auto;
+}
+nav button:hover{background:var(--brand-bg);color:var(--brand)}
+nav button[aria-current="page"]{background:var(--brand);color:#fff}
+
+main{max-width:948px;margin:0 auto;padding:20px}
+.panel{display:none}
+.panel.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.card h2{font-size:15px;margin-bottom:4px}
+.card p.sub{color:var(--sub);font-size:13px;margin:0 0 12px}
+
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.toolbar input[type=search]{
+  height:34px;border:1px solid var(--line2);border-radius:8px;padding:0 10px;font:13px/1 inherit;width:220px;background:#fff;color:var(--txt);
+}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:12px;border:1px solid var(--line2);background:#fff;border-radius:20px;padding:5px 11px;cursor:pointer;color:var(--sub)}
+.chip[aria-pressed="true"]{background:var(--brand-bg);border-color:var(--brand);color:var(--brand)}
+
+.tbl-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:500;color:var(--sub);font-size:12px;background:#fafbfc;position:sticky;top:0}
+td.code{font:13px/1.5 var(--mono);white-space:nowrap;color:var(--brand-strong);font-weight:500}
+.tag{display:inline-block;font-size:11px;border-radius:4px;padding:1px 6px;margin-left:6px;background:var(--warn-bg);color:var(--warn);border:1px solid #f0d9b5}
+.alt{display:block;margin-top:4px;color:var(--warn);font-size:12px}
+.empty{padding:24px;text-align:center;color:var(--muted);font-size:13px}
+
+.placeholder{border:1px dashed var(--line2);border-radius:var(--r);padding:22px;text-align:center;color:var(--sub);background:#fafbfc}
+.placeholder strong{display:block;color:var(--txt);font-weight:500;margin-bottom:6px;font-size:14px}
+.placeholder .when{display:inline-block;margin-top:10px;font:12px/1 var(--mono);color:var(--brand);background:var(--brand-bg);border-radius:20px;padding:4px 10px}
+
+footer{max-width:948px;margin:0 auto;padding:0 20px 40px;color:var(--muted);font-size:12px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+@media (max-width:900px){
+  .field input,.field select{width:100%}
+  .field{flex:1 1 calc(50% - 7px);max-width:calc(50% - 7px)}
+  .cardbar .acts{margin-left:0;width:100%}
+}
+@media (max-width:720px){
+  main{padding:14px}
+  .head .hint{display:none}
+  .toolbar input[type=search]{width:100%}
+}
+@media (max-width:360px){
+  .field{flex:1 1 100%;max-width:100%}
+}
+@media (max-width:420px){
+  nav button{padding:8px 10px;font-size:12px}
+}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+/* ===== M1：编辑器 / 参数 / 解释 ===== */
+.ed-wrap{display:grid;grid-template-columns:258px minmax(0,1fr);gap:14px}
+.ed-side{display:flex;flex-direction:column;gap:8px;min-width:0}
+.ed-side select{height:34px;border:1px solid var(--line2);border-radius:8px;background:#fff;color:var(--txt);font:12px/1 inherit;padding:0 6px;width:100%}
+.snips{display:flex;flex-wrap:wrap;gap:6px}
+.snips button{font-size:12px;border:1px solid var(--line2);background:#fff;border-radius:6px;padding:5px 8px;cursor:pointer;color:var(--sub)}
+.snips button:hover{border-color:var(--brand);color:var(--brand)}
+.ed-main{min-width:0}
+#prog,#ex-input,#lint-input,#batch-input{width:100%;border:1px solid var(--line2);border-radius:8px;padding:10px;font:13px/1.7 var(--mono);background:#0f1222;color:#e8e9f3;resize:vertical;tab-size:4}
+#prog{min-height:440px}
+#ex-input{min-height:200px}
+#lint-input,#batch-input{min-height:200px}
+.drill-code{margin:12px 0 0;border:1px solid var(--line);border-radius:8px;background:#0f1222;color:#e8e9f3;font:13px/1.7 var(--mono);padding:12px;overflow:auto;max-height:280px}
+#tool-rows input,#tool-rows select{height:30px;border:1px solid var(--line2);border-radius:6px;font:12px/1 var(--mono);padding:0 6px;width:100%;background:#fff;color:var(--txt)}
+.ed-acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.ed-stat{font-size:12px;color:var(--muted);font-family:var(--mono)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.params-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin-bottom:14px}
+.out-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#fafbfc;min-width:0}
+.stat b{display:block;font-size:12px;font-weight:400;color:var(--sub);margin-bottom:4px}
+.stat span{font:15px/1.25 var(--mono);color:var(--txt);word-break:break-all}
+.stat small{display:block;margin-top:5px;font-size:11px;color:var(--muted);line-height:1.45}
+.stat.hi span{color:var(--brand-strong)}
+.stat.warn span{color:var(--warn)}
+.ex-list{margin-top:12px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.ex-row{display:grid;grid-template-columns:54px minmax(0,1fr);border-bottom:1px solid var(--line)}
+.ex-row:last-child{border-bottom:0}
+.ex-no{font:12px/1.6 var(--mono);color:var(--muted);padding:8px 6px;text-align:right;background:#fafbfc;border-right:1px solid var(--line)}
+.ex-body{padding:8px 10px;font-size:13px;min-width:0}
+.ex-body code{font:12px/1.55 var(--mono);color:var(--brand-strong);display:block;margin-bottom:3px;word-break:break-all}
+.ex-row.block{background:var(--brand-bg)}
+.ex-row.body-in{background:#fbfaff}
+.ex-row.body-in .ex-body{color:var(--sub)}
+.ex-row.blank .ex-body{color:var(--muted)}
+.ex-note{font-size:12px;color:var(--warn);margin-top:8px}
+body.present .head{display:none}
+body.present .cardbar{display:none}
+body.present main{max-width:none;padding:24px}
+body.present .panel .card{padding:22px}
+body.present .sub{font-size:15px}
+body.present .tbl-scroll table{font-size:14px}
+.help-list{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.help-item{border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:#fff}
+.help-item h3{font-size:14px;margin-bottom:6px;color:var(--brand-strong)}
+.help-item p{font-size:13px;color:var(--sub);margin:0 0 6px;line-height:1.7}
+.help-item ul{margin:0;padding-left:18px;font-size:13px;color:var(--sub);line-height:1.7}
+.path-wrap{border:1px solid var(--line);border-radius:8px;background:#fff;padding:6px}
+#path-canvas{display:block;width:100%;height:360px}
+#path-step{accent-color:var(--brand)}
+#path-code tr.cur{background:var(--brand-bg)}
+#path-code tr.cur td{color:var(--brand-strong)}
+#path-code td.mono{font:12px/1.5 var(--mono)}
+.lint-list{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.lint-item{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#fff}
+.lint-item .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:3px}
+.lv{font:11px/1 var(--mono);border-radius:4px;padding:3px 6px;color:#fff;font-weight:500}
+.lv.S{background:#b42318}
+.lv.E{background:#c2410c}
+.lv.W{background:#b45309}
+.lv.I{background:#64748b}
+.lint-code{font:12px/1 var(--mono);color:var(--brand-strong)}
+.lint-line{font:12px/1 var(--mono);color:var(--muted)}
+.lint-msg{font-size:13px;margin:2px 0 6px}
+.lint-why{font-size:12px;color:var(--sub);margin:2px 0;line-height:1.5}
+.lint-fix{font-size:12px;color:var(--ok);margin:2px 0;line-height:1.5}
+.lint-na{border:1px dashed var(--line2);border-radius:8px;padding:10px 12px;margin-top:12px;font-size:12px;color:var(--sub);background:#fafbfc;line-height:1.6}
+.lint-na b{font-weight:500;color:var(--txt)}
+.lint-none{border:1px solid #b7e2d6;background:var(--accent-bg);color:var(--ok);border-radius:8px;padding:12px;font-size:13px}
+@media (max-width:720px){
+  .ed-wrap{grid-template-columns:1fr}
+  #prog{min-height:280px}
+}
+</style>
+</head>
+<body>
+
+<header class="head">
+  <span class="brand">数控车削编程助手</span>
+  <span class="ver" id="ver">v1.1.0</span>
+  <span class="hint">FANUC 0i-T · 教学用 · 生成程序须空运行与首件试切</span>
+  <button class="btn" id="present-btn" type="button" style="margin-left:12px">大屏模式</button>
+</header>
+
+<section class="cardbar" aria-label="工件卡（G1 全局工艺上下文）">
+  <div class="row">
+    <div class="field"><label for="c-bd">毛坯 Φ (mm)</label><input id="c-bd" type="number" min="1" max="500" step="0.1" value="50"></div>
+    <div class="field"><label for="c-bl">毛坯长 (mm)</label><input id="c-bl" type="number" min="1" max="1000" step="0.1" value="90"></div>
+    <div class="field"><label for="c-cl">夹持长 (mm)</label><input id="c-cl" type="number" min="0" max="500" step="0.1" value="25"></div>
+    <div class="field"><label for="c-pl">零件长 (mm)</label><input id="c-pl" type="number" min="0" max="1000" step="0.1" value="60"></div>
+    <div class="field"><label for="c-mat">材料</label><select id="c-mat"></select></div>
+    <div class="field"><label for="c-td">螺纹公称 (mm)</label><input id="c-td" type="number" min="1" max="100" step="1" value="30"></div>
+    <div class="field"><label for="c-tp">螺距 (mm)</label><select id="c-tp"></select></div>
+    <div class="acts">
+      <button class="btn" id="c-export" type="button">导出工件卡</button>
+      <button class="btn" id="c-import" type="button">导入</button>
+      <input id="c-file" type="file" accept="application/json,.json" class="sr-only">
+      <button class="btn" id="c-reset" type="button">重置</button>
+    </div>
+  </div>
+  <div class="card-issues" id="card-issues" role="status" aria-live="polite"></div>
+</section>
+
+<nav id="nav" aria-label="功能面板">
+  <button data-p="codes" aria-current="page">代码速查</button>
+  <button data-p="editor">程序编辑器</button>
+  <button data-p="params">参数计算</button>
+  <button data-p="explain">程序解释</button>
+  <button data-p="lint">程序校验</button>
+  <button data-p="path">刀轨演示</button>
+  <button data-p="batch">批量批改</button>
+  <button data-p="drill">找错练习</button>
+  <button data-p="tools">刀具与对刀</button>
+  <button data-p="help">帮助</button>
+</nav>
+
+<main>
+  <section class="panel active" id="panel-codes" aria-labelledby="h-codes">
+    <div class="card">
+      <h2 id="h-codes">G / M 代码速查</h2>
+      <p class="sub">FANUC 0i-T 车床指令集。带「双含义」标记的指令在车床上有两种用法，必须结合上下文判断。</p>
+      <div class="toolbar">
+        <label class="sr-only" for="q">搜索指令</label>
+        <input id="q" type="search" placeholder="搜代码、名称或说明，如 G71 / 螺纹">
+        <div class="chips" id="chips"></div>
+      </div>
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th style="width:92px">代码</th><th style="width:190px">名称</th><th>说明</th></tr></thead>
+          <tbody id="code-body"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="code-empty" hidden>没有匹配的指令</div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-editor"><div class="card">
+    <h2>程序编辑器</h2>
+    <p class="sub">10 个工艺模板（覆盖端面到综合件）· 14 条快捷片段 · 内容自动保存在本机</p>
+    <div class="ed-wrap">
+      <div class="ed-side">
+        <label class="sr-only" for="tpl-sel">选择工艺模板</label>
+        <select id="tpl-sel"></select>
+        <button class="btn" id="tpl-load" type="button">载入模板</button>
+        <div class="snips" id="snips"></div>
+      </div>
+      <div class="ed-main">
+        <label class="sr-only" for="prog">程序正文</label>
+        <textarea id="prog" spellcheck="false" placeholder="O0001;&#10;G21 G99 G40;&#10;T0101;&#10;..."></textarea>
+        <div class="ed-acts">
+          <button class="btn primary" id="ed-explain" type="button">送去解释</button>
+          <button class="btn" id="ed-copy" type="button">复制全文</button>
+          <button class="btn" id="ed-clear" type="button">清空</button>
+          <span class="ed-stat" id="ed-stat"></span>
+        </div>
+      </div>
+    </div>
+  </div></section>
+
+  <section class="panel" id="panel-params">
+    <div class="card">
+      <h2>参数计算</h2>
+      <p class="sub">读工件卡与材料表取数，不各自维护默认值。恒线速按当前最大直径核算，超限直接给出应设的 G50 S 值。</p>
+      <div class="params-grid">
+        <div class="field"><label for="p-d">加工直径 D (mm)</label><input id="p-d" type="number" min="1" max="500" step="0.5" value="50"></div>
+        <div class="field"><label for="p-mat">材料</label><select id="p-mat"></select></div>
+        <div class="field"><label for="p-op">工序</label><select id="p-op"><option value="rough">粗车</option><option value="finish">精车</option></select></div>
+        <div class="field"><label for="p-mode">主轴指令</label><select id="p-mode"><option value="G97">G97 恒转速</option><option value="G96">G96 恒线速</option></select></div>
+        <div class="field"><label for="p-smax">最高转速 (G50 S)</label><input id="p-smax" type="number" min="100" max="9999" step="50" value="2000"></div>
+      </div>
+      <div class="out-grid" id="p-out" role="status" aria-live="polite"></div>
+      <div class="ex-note" id="p-hint"></div>
+    </div>
+    <div class="card">
+      <h2>螺纹参数</h2>
+      <p class="sub">公称与螺距取自工件卡。牙深按教材经验口径（0.6495P），并另给标准基本牙型参考值。</p>
+      <div class="out-grid" id="t-out"></div>
+      <div class="tbl-scroll" style="margin-top:12px">
+        <table>
+          <thead><tr><th style="width:70px">刀次</th><th>本次切深 ap</th><th>累计切深</th><th>剩余到牙深</th></tr></thead>
+          <tbody id="t-passes"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h2>切槽扩槽</h2>
+      <p class="sub">槽宽与刀宽决定要切几刀、每刀 Z 向移动多少。</p>
+      <div class="params-grid">
+        <div class="field"><label for="g-b">槽宽 (mm)</label><input id="g-b" type="number" min="1" max="200" step="0.5" value="12"></div>
+        <div class="field"><label for="g-w">刀宽 (mm)</label><input id="g-w" type="number" min="1" max="20" step="0.5" value="3"></div>
+      </div>
+      <div class="out-grid" id="g-out"></div>
+      <div class="ex-note" id="g-hint"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-explain"><div class="card">
+    <h2>程序解释</h2>
+    <p class="sub">循环块整块翻译：G71/G72/G73/G76 的参数行与轮廓指定行合成一句话，P/Q 之间的轮廓段单独标注为「不按顺序执行」。</p>
+    <label class="sr-only" for="ex-input">待解释的程序</label>
+    <textarea id="ex-input" spellcheck="false" placeholder="粘贴一段车削程序，或在编辑器里点「送去解释」"></textarea>
+    <div class="ed-acts">
+      <button class="btn primary" id="ex-run" type="button">解释</button>
+      <button class="btn" id="ex-from-editor" type="button">取编辑器内容</button>
+      <span class="ed-stat" id="ex-stat"></span>
+    </div>
+    <div class="ex-list" id="ex-out"></div>
+  </div></section>
+
+  <section class="panel" id="panel-lint"><div class="card">
+    <h2>程序校验</h2>
+    <p class="sub">50 条规则 · S（阻断）/ E（错误）/ W（警告）/ I（提示）四级 · 每条给「为什么错 / 怎么改」。缺工件卡字段的规则进「未判定」，不静默通过。</p>
+    <label class="sr-only" for="lint-input">待校验的程序</label>
+    <textarea id="lint-input" spellcheck="false" placeholder="粘贴一段车削程序，或在编辑器里点「送去校验」"></textarea>
+    <div class="ed-acts">
+      <button class="btn primary" id="lint-run" type="button">校验</button>
+      <button class="btn" id="lint-from-editor" type="button">取编辑器内容</button>
+      <span class="ed-stat" id="lint-stat"></span>
+    </div>
+    <div class="out-grid" id="lint-sum" style="margin-top:12px" role="status" aria-live="polite"></div>
+    <div class="lint-list" id="lint-out"></div>
+    <div id="lint-na"></div>
+  </div></section>
+
+  <section class="panel" id="panel-path"><div class="card">
+    <h2>刀轨演示</h2>
+    <p class="sub">ZX 平面轨迹 · X 轴可切直径/半径刻度 · 分步播放与代码联动。毛坯按工件卡绘制，蓝线是切削、灰虚线是快速移动。</p>
+    <label class="sr-only" for="path-canvas">刀轨图</label>
+    <div class="path-wrap"><canvas id="path-canvas" height="360"></canvas></div>
+    <div class="ed-acts">
+      <button class="btn" id="path-prev" type="button">上一步</button>
+      <button class="btn" id="path-next" type="button">下一步</button>
+      <label class="sr-only" for="path-step">轨迹进度</label>
+      <input id="path-step" type="range" min="0" max="0" value="0" style="flex:1 1 160px;min-width:120px">
+      <label class="sr-only" for="path-scale">刻度方式</label>
+      <select id="path-scale"><option value="dia">直径刻度</option><option value="rad">半径刻度</option></select>
+      <label for="path-nose" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--sub)"><input type="checkbox" id="path-nose"> 刀尖 R</label>
+      <button class="btn" id="path-from-editor" type="button">取编辑器内容</button>
+    </div>
+    <div class="ed-stat" id="path-stat" style="margin-top:8px"></div>
+    <div class="tbl-scroll" style="margin-top:10px;max-height:230px;overflow:auto">
+      <table>
+        <thead><tr><th style="width:56px">行</th><th>程序段</th><th style="width:104px">类型</th></tr></thead>
+        <tbody id="path-code"></tbody>
+      </table>
+    </div>
+  </div></section>
+
+  <section class="panel" id="panel-batch"><div class="card">
+    <h2>批量批改</h2>
+    <p class="sub">多份作业用一行 ===== 分隔，按同一份工件卡与 E6 口令打分（与校验面板同源）。</p>
+    <label class="sr-only" for="batch-input">多份作业</label>
+    <textarea id="batch-input" spellcheck="false" placeholder="第一份作业&#10;=====&#10;第二份作业"></textarea>
+    <div class="ed-acts">
+      <button class="btn primary" id="batch-run" type="button">批改</button>
+      <button class="btn" id="batch-demo" type="button">填入 4 份演示</button>
+      <button class="btn" id="batch-csv" type="button">导出 CSV</button>
+      <span class="ed-stat" id="batch-stat"></span>
+    </div>
+    <div class="tbl-scroll" style="margin-top:12px">
+      <table>
+        <thead><tr><th style="width:52px">序号</th><th style="width:60px">段数</th><th style="width:64px">得分</th><th style="width:150px">S / E / W / I</th><th>首要问题</th></tr></thead>
+        <tbody id="batch-out"></tbody>
+      </table>
+    </div>
+  </div></section>
+
+  <section class="panel" id="panel-drill"><div class="card">
+    <h2>找错练习</h2>
+    <p class="sub">从 10 种典型变异里随机注入一处错误，先自己判断错在哪，再对答案。</p>
+    <div class="ed-acts">
+      <button class="btn primary" id="drill-new" type="button">出一题</button>
+      <label class="sr-only" for="drill-mode">练习模式</label>
+      <select id="drill-mode"><option value="mut">变异练习</option><option value="quiz">题库判分</option></select>
+      <label class="sr-only" for="drill-guess">你认为错在哪</label>
+      <select id="drill-guess"></select>
+      <button class="btn" id="drill-check" type="button">对答案</button>
+      <span class="ed-stat" id="drill-stat"></span>
+    </div>
+    <pre id="drill-code" class="drill-code"></pre>
+    <div id="drill-out" class="lint-list"></div>
+    <div id="quiz-wrap" style="display:none">
+      <div id="quiz-box" class="help-list" style="margin-top:12px"></div>
+      <div class="ed-acts">
+        <button class="btn primary" id="quiz-submit" type="button">交卷判分</button>
+        <span class="ed-stat" id="quiz-stat"></span>
+      </div>
+      <div id="quiz-out" class="lint-list"></div>
+    </div>
+  </div></section>
+
+  <section class="panel" id="panel-tools">
+    <div class="card">
+      <h2>刀具表</h2>
+      <p class="sub">这是刀具参数的唯一来源：刀尖半径与方位号会直接参与校验（T03/T04/T05）与刀轨计算。</p>
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th style="width:56px">T 号</th><th style="width:120px">类型</th><th style="width:90px">刀尖 R</th><th style="width:90px">方位号</th><th style="width:90px">刀宽</th></tr></thead>
+          <tbody id="tool-rows"></tbody>
+        </table>
+      </div>
+      <div class="ed-acts"><button class="btn" id="tool-save" type="button">保存刀具表</button><span class="ed-stat" id="tool-stat"></span></div>
+    </div>
+    <div class="card">
+      <h2>刀尖方位号判定</h2>
+      <p class="sub">选刀型与走刀方向，给出方位号与该配的补偿指令。这是车削最易错的一步。</p>
+      <div class="params-grid">
+        <div class="field"><label for="tip-type">刀型</label><select id="tip-type"></select></div>
+        <div class="field"><label for="tip-dir">走刀方向</label><select id="tip-dir"></select></div>
+      </div>
+      <div class="out-grid" id="tip-out"></div>
+    </div>
+    <div class="card">
+      <h2>试切对刀</h2>
+      <p class="sub">直径编程下，X 刀补按实测与程序的直径差修正；Z 向以端面轻切定为 0。</p>
+      <div class="params-grid">
+        <div class="field"><label for="of-m">实测直径 (mm)</label><input id="of-m" type="number" step="0.01" value="49.6"></div>
+        <div class="field"><label for="of-p">程序直径 (mm)</label><input id="of-p" type="number" step="0.01" value="50"></div>
+      </div>
+      <div class="out-grid" id="of-out"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-help"><div class="card">
+    <h2>帮助</h2>
+    <p class="sub">十个面板怎么用、工件卡为什么必须填、常见问题。可按关键词筛选。</p>
+    <div class="toolbar">
+      <label class="sr-only" for="help-q">搜索帮助内容</label>
+      <input id="help-q" type="search" placeholder="搜「刀补」「G71」「批改」…">
+      <button class="btn" id="help-export" type="button">导出讲义</button>
+      <span class="ed-stat" id="help-stat"></span>
+    </div>
+    <div id="help-out" class="help-list"></div>
+  </div></section>
+</main>
+
+<footer>
+  教材口径按 FANUC 0i-T 标准指令集，不绑定具体书目页码。生成程序未经真实试切验证，必须空运行 + 首件试切后再用于生产。本项目仅供教学使用。
+</footer>
+
+<script id="app-js">
+/* ========== 版本 ========== */
+var VERSION = 'v1.1.0';
+
+/* ========== E4 数据层：G 代码 ========== */
+var GCODES = [
+  {c:'G00', n:'快速点定位', cat:'运动', d:'刀具按机床设定的快速速度移动到目标点，不切削。车床上可走直线或折线（视参数）。'},
+  {c:'G01', n:'直线插补', cat:'运动', d:'按给定进给速度 F 沿直线切削到目标点。车外圆、车端面、倒角都用它。'},
+  {c:'G02', n:'顺时针圆弧插补', cat:'运动', d:'逆着 X 轴方向看为顺时针。终点用 X、Z，圆心用 I（X 向，半径值）、K（Z 向）或 R 指定。'},
+  {c:'G03', n:'逆时针圆弧插补', cat:'运动', d:'与 G02 方向相反。车削圆弧时 I 为半径值，不是直径值。'},
+  {c:'G04', n:'暂停', cat:'运动', d:'G04 X2.0（秒）或 G04 P2000（毫秒）。用于断屑、清屑、等转速稳定。'},
+  {c:'G32', n:'螺纹切削（单刀）', cat:'运动', d:'G99 时 F 等于螺距。需手工分层多次进刀，退刀点要留足距离。'},
+  {c:'G28', n:'返回参考点', cat:'运动', d:'G28 U0 W0 经中间点回机床零点。换刀前常用。'},
+  {c:'G30', n:'返回第二参考点', cat:'运动', d:'回第二参考点，常用于换刀位置。'},
+  {c:'G09', n:'准确停止（单段）', cat:'运动', d:'到点后减速确认停止再执行下一段，用于清角。'},
+
+  {c:'G50', n:'设定工件坐标系 / 主轴最高转速限制', cat:'坐标系', dual:'双含义：单独 G50 X_ Z_ 是设定工件坐标系（老式对刀）；G50 S2000 是限制主轴最高转速，与 G96 恒线速必须配套使用。',
+   d:'不带 S 时为设定工件坐标系；带 S 时为限制最高转速。FANUC 0i-T 上两种用法共存，看有没有 S 地址字。'},
+  {c:'G52', n:'局部坐标系设定', cat:'坐标系', d:'在当前工件坐标系内再设一个局部原点，G52 X0 Z0 取消。'},
+  {c:'G53', n:'机床坐标系选择', cat:'坐标系', d:'本段坐标按机床坐标系解释，不受 G54~G59 影响，常用于回安全位置。'},
+  {c:'G54', n:'第一工件坐标系', cat:'坐标系', d:'最常用。程序头必须选定坐标系，否则沿用上一程序的残留值。'},
+  {c:'G55', n:'第二工件坐标系', cat:'坐标系', d:'与 G54 用法相同，多件或多工序时切换。'},
+  {c:'G56', n:'第三工件坐标系', cat:'坐标系', d:'同上。'},
+  {c:'G57', n:'第四工件坐标系', cat:'坐标系', d:'同上。'},
+  {c:'G58', n:'第五工件坐标系', cat:'坐标系', d:'同上。'},
+  {c:'G59', n:'第六工件坐标系', cat:'坐标系', d:'同上。'},
+  {c:'G90', n:'绝对值编程 / 外圆切削循环', cat:'坐标系', dual:'双含义：写在程序头是绝对值编程（坐标都是绝对坐标）；写成 G90 X_ Z_ R_ F_ 是外圆（内孔）单一切削循环。',
+   d:'模态指令。车削教材里 G90 循环常用于粗车台阶，一行一个台阶。'},
+  {c:'G91', n:'增量值编程', cat:'坐标系', d:'坐标按相对上一点的位移解释，用 U、W 更常见。'},
+  {c:'G92', n:'设定工件坐标系 / 螺纹切削循环', cat:'坐标系', dual:'双含义：G92 X_ Z_ 是设定工件坐标系；G92 X_ Z_ F_ 是螺纹切削单一循环（F 为螺距）。',
+   d:'螺纹单一循环，需分层多次调用，每次改 X 值。'},
+  {c:'G94', n:'每分钟进给 / 端面切削循环', cat:'坐标系', dual:'双含义：G94 单独出现是进给方式（mm/min）；G94 X_ Z_ R_ F_ 是端面切削循环。',
+   d:'车削默认用 G99 每转进给，G94 用于需要恒定 mm/min 的场合。'},
+  {c:'G98', n:'每分钟进给', cat:'坐标系', d:'进给速度单位 mm/min。与 G99 互斥，同一时刻只有一个生效。'},
+  {c:'G99', n:'每转进给', cat:'坐标系', d:'进给速度单位 mm/r，车削默认。程序头应写 G99，否则可能沿用上一程序的 G98。'},
+
+  {c:'G70', n:'精车循环', cat:'循环', d:'G70 P(ns) Q(nf)：按 G71/G72/G73 留下的轮廓做精车，P/Q 必须与粗车循环一致。'},
+  {c:'G71', n:'外圆粗车复合循环', cat:'循环', d:'两行：G71 U(Δd) R(e) / G71 P(ns) Q(nf) U(Δu·直径) W(Δw) F。第一行 U 是每刀切深（半径值），第二行 U 是 X 向余量（直径值），同一个字两种含义。'},
+  {c:'G72', n:'端面粗车复合循环', cat:'循环', d:'与 G71 类似，但沿 Z 向分层、X 向进刀，适合盘类件。参数含义方向相反。'},
+  {c:'G73', n:'封闭轮廓复合循环', cat:'循环', d:'G73 U(i) W(k) R(d) / G73 P Q U W F。按已成形轮廓仿形重复走刀，适合铸锻件毛坯。'},
+  {c:'G74', n:'端面切槽 / 钻孔循环', cat:'循环', d:'沿 Z 向啄式进刀，用于端面槽或轴心钻孔。注意进刀方向与退刀量。'},
+  {c:'G75', n:'径向切槽 / 切断循环', cat:'循环', d:'沿 X 向啄式进刀，用于外圆切槽与切断。X 值递减，最后留 0.1~0.2mm 再切断。'},
+  {c:'G76', n:'螺纹切削复合循环', cat:'循环', d:'两行：G76 P(m)(r)(a) Q(Δdmin) R(d) / G76 X_ Z_ P(k) Q(Δd) R_ F(L)。P 共 6 位：精车次数 m、倒角量 r、牙型角 a（通常 00 或 60）。'},
+  {c:'G80', n:'取消固定循环', cat:'循环', d:'取消钻孔等固定循环模态，回到普通插补。'},
+
+  {c:'G40', n:'取消刀尖半径补偿', cat:'刀补', d:'轮廓走完立即取消，且必须在 G00/G01 直线段上取消。'},
+  {c:'G41', n:'刀尖半径左补偿', cat:'刀补', d:'沿走刀方向看，刀尖在工件左侧。内孔车削（刀尖方位号 T2）常用。'},
+  {c:'G42', n:'刀尖半径右补偿', cat:'刀补', d:'沿走刀方向看，刀尖在工件右侧。外圆车削（T3 外圆右手刀）常用。'},
+  {c:'G10', n:'可编程数据输入', cat:'刀补', d:'G10 P_ R_ 直接写刀补表或工件坐标系，可用于程序内设定补偿量。'},
+
+  {c:'G96', n:'恒线速度控制', cat:'主轴与进给', d:'S 为切削线速度 m/min。转速随直径变化，必须配 G50 S___ 限最高转速，否则小直径处会超速。'},
+  {c:'G97', n:'恒转速控制', cat:'主轴与进给', d:'S 为主轴转速 r/min。车螺纹、切槽、钻孔时必须用 G97，否则转速随直径变会导致乱扣。'},
+  {c:'G21', n:'公制输入', cat:'主轴与进给', d:'程序头必须写，否则可能沿用英制状态，整张程序尺寸差 25.4 倍。'},
+  {c:'G20', n:'英制输入', cat:'主轴与进给', d:'英制尺寸。教学程序统一用 G21。'},
+  {c:'G22', n:'存储行程检查开', cat:'主轴与进给', d:'打开行程检查，超程报警。'},
+  {c:'G23', n:'存储行程检查关', cat:'主轴与进给', d:'关闭行程检查。'}
+];
+
+/* ========== E4 数据层：M 代码 ========== */
+var MCODES = [
+  {c:'M00', n:'程序停止', cat:'M 代码', d:'执行到此处无条件停止，按循环启动继续。'},
+  {c:'M01', n:'计划停止', cat:'M 代码', d:'面板「选择停止」开关打开时才停，用于抽检。'},
+  {c:'M02', n:'程序结束', cat:'M 代码', d:'结束程序但不复位，光标停在末尾。'},
+  {c:'M03', n:'主轴正转', cat:'M 代码', d:'刀具面向工件，主轴顺时针（默认正转）。车外圆用 M03。'},
+  {c:'M04', n:'主轴反转', cat:'M 代码', d:'车内孔或反手刀时使用。'},
+  {c:'M05', n:'主轴停止', cat:'M 代码', d:'程序结束前停主轴。'},
+  {c:'M08', n:'冷却液开', cat:'M 代码', d:'切削前打开，粗车必须开。'},
+  {c:'M09', n:'冷却液关', cat:'M 代码', d:'抬刀后关闭。'},
+  {c:'M19', n:'主轴定向停止', cat:'M 代码', d:'主轴停在固定角度，用于换刀或异形夹持。'},
+  {c:'M30', n:'程序结束并复位', cat:'M 代码', d:'结束并回到程序头，模态状态复位。程序末必须用 M30。'},
+  {c:'M98', n:'子程序调用', cat:'M 代码', d:'M98 P____ L__：P 为子程序号，L 为调用次数。'},
+  {c:'M99', n:'子程序返回', cat:'M 代码', d:'子程序末尾用 M99 返回主程序。'}
+];
+
+/* ========== E4 数据层：材料表 ==========
+   vc 单位 m/min；f 单位 mm/r；ap 单位 mm（半径值） */
+var MATERIALS = [
+  {k:'45',    name:'45 钢（中碳钢）',      vcR:130, vcF:180, fR:0.30, fF:0.12, apR:2.5, apF:0.30, hb:200, note:'最常用，粗车取中等参数'},
+  {k:'q235',  name:'Q235（低碳钢）',       vcR:150, vcF:200, fR:0.35, fF:0.15, apR:3.0, apF:0.40, hb:130, note:'软、易粘刀，进给可大些'},
+  {k:'40cr',  name:'40Cr（合金结构钢）',   vcR:100, vcF:150, fR:0.30, fF:0.12, apR:2.0, apF:0.30, hb:240, note:'调质后硬度高，vc 下调'},
+  {k:'20crmnti', name:'20CrMnTi（渗碳钢）', vcR:90,  vcF:140, fR:0.25, fF:0.10, apR:2.0, apF:0.25, hb:180, note:'齿轮类常用，注意积屑瘤'},
+  {k:'65mn',  name:'65Mn（弹簧钢）',       vcR:80,  vcF:120, fR:0.25, fF:0.10, apR:2.0, apF:0.30, hb:280, note:'弹性大、易让刀，切深别太猛'},
+  {k:'t10a',  name:'T10A（碳素工具钢）',   vcR:70,  vcF:110, fR:0.20, fF:0.10, apR:1.5, apF:0.20, hb:220, note:'硬度较高，精车用小进给'},
+  {k:'ht200', name:'HT200（灰铸铁）',      vcR:90,  vcF:120, fR:0.30, fF:0.12, apR:2.0, apF:0.30, hb:190, note:'切屑碎，注意粉尘防护'},
+  {k:'304',   name:'1Cr18Ni9Ti（不锈钢）', vcR:60,  vcF:90,  fR:0.20, fF:0.10, apR:1.5, apF:0.25, hb:180, note:'冷作硬化明显，切深要过表皮'},
+  {k:'6061',  name:'6061 铝合金',          vcR:300, vcF:450, fR:0.40, fF:0.15, apR:3.0, apF:0.50, hb:95,  note:'高速大进给，注意排屑'},
+  {k:'h62',   name:'H62 黄铜',             vcR:250, vcF:350, fR:0.35, fF:0.12, apR:2.5, apF:0.40, hb:100, note:'易切削，注意断屑'},
+  {k:'t2',    name:'T2 紫铜',              vcR:200, vcF:300, fR:0.30, fF:0.10, apR:2.0, apF:0.30, hb:60,  note:'粘刀严重，需锋利刃口'},
+  {k:'pom',   name:'POM / 工程塑料',       vcR:300, vcF:400, fR:0.40, fF:0.20, apR:3.0, apF:0.50, hb:0,   note:'注意热变形，转速别拉满'}
+];
+
+/* ========== E4 数据层：螺纹规格（GB/T 193 粗牙 + 常用细牙） ========== */
+var THREADS = [
+  {d:6,  p:1,    kind:'粗牙'}, {d:8,  p:1.25, kind:'粗牙'},
+  {d:10, p:1.5,  kind:'粗牙'}, {d:12, p:1.75, kind:'粗牙'},
+  {d:16, p:2,    kind:'粗牙'}, {d:20, p:2.5,  kind:'粗牙'},
+  {d:24, p:3,    kind:'粗牙'}, {d:30, p:3.5,  kind:'粗牙'},
+  {d:36, p:4,    kind:'粗牙'}, {d:42, p:4.5,  kind:'粗牙'},
+  {d:48, p:5,    kind:'粗牙'}, {d:52, p:5,    kind:'粗牙'},
+  {d:56, p:5.5,  kind:'粗牙'}, {d:60, p:5.5,  kind:'粗牙'},
+  {d:64, p:6,    kind:'粗牙'},
+  {d:10, p:1.25, kind:'细牙'}, {d:12, p:1.25, kind:'细牙'},
+  {d:20, p:1.5,  kind:'细牙'}, {d:30, p:1.5,  kind:'细牙'},
+  {d:36, p:2,    kind:'细牙'}
+];
+
+/* ========== 纯函数层（可单测） ========== */
+function round2(x){
+  if(typeof x !== 'number' || !isFinite(x)) return NaN;
+  return Math.round((x + Number.EPSILON) * 100) / 100;
+}
+function roundHalf(x){
+  if(typeof x !== 'number' || !isFinite(x)) return NaN;
+  return Math.round((x + Number.EPSILON) * 2) / 2;
+}
+
+/* 恒线速 → 主轴转速 r/min：n = 1000·vc / (π·D) */
+function calcRpm(vc, d){
+  if(!(vc > 0) || !(d > 0)) return NaN;
+  return 1000 * vc / (Math.PI * d);
+}
+/* 按最高转速折回实际线速度（G50 限速后真实 vc 会降下来） */
+function clampRpm(rpm, rpmMax){
+  if(!(rpm > 0)) return NaN;
+  if(!(rpmMax > 0)) return rpm;
+  return Math.min(rpm, rpmMax);
+}
+
+/* 螺纹基本尺寸：标准口径（GB/T 192）与教材经验口径并存 */
+function threadBasic(d, p){
+  if(!(d > 0) || !(p > 0)) return null;
+  var d2    = d - 0.6495 * p;   /* 中径 */
+  var d1std = d - 1.0825 * p;   /* 标准基本小径 */
+  var h1std = 0.5413 * p;       /* 标准牙型高（单边） */
+  var hExp  = 0.6495 * p;       /* 教材经验牙深（单边） */
+  var d1exp = d - 2 * hExp;     /* 教材经验小径 = d - 1.299P */
+  return {d2:d2, d1std:d1std, h1std:h1std, hExp:hExp, d1exp:d1exp};
+}
+
+/* 螺纹分刀：按牙深均分但递减，返回每刀 ap 与累计切深 */
+var PASS_W = {
+  4:[0.35,0.30,0.20,0.15],
+  5:[0.30,0.25,0.20,0.15,0.10],
+  6:[0.25,0.22,0.19,0.15,0.11,0.08]
+};
+function threadPasses(h, n){
+  if(!(h > 0)) return [];
+  n = PASS_W[n] ? n : 5;
+  var w = PASS_W[n], out = [], acc = 0;
+  for(var i = 0; i < w.length; i++){
+    acc += w[i];
+    out.push({no:i + 1, ap:round2(h * w[i]), acc:round2(h * acc)});
+  }
+  return out;
+}
+
+/* ========== G1 工件卡 ========== */
+var TOOL_TYPES = ['外圆刀', '内孔刀', '切槽刀', '切断刀', '螺纹刀', '钻头'];
+var TOOL_DEFAULT = [
+  {t:1, type:'外圆刀', r:0.4, tip:3, blade:0},
+  {t:2, type:'内孔刀', r:0.4, tip:2, blade:0},
+  {t:3, type:'切槽刀', r:0.2, tip:4, blade:3},
+  {t:4, type:'螺纹刀', r:0.1, tip:3, blade:0}
+];
+
+function clampNum(v, lo, hi, dft){
+  var n = Number(v);
+  if(!isFinite(n)) n = dft;
+  return Math.min(hi, Math.max(lo, n));
+}
+
+function toolsNormalize(list){
+  var out = [];
+  if(Array.isArray(list)){
+    list.slice(0, 20).forEach(function(x){
+      if(!x) return;
+      var t = Math.round(Number(x.t));
+      if(!(t >= 1 && t <= 99)) return;
+      out.push({
+        t:t,
+        type:(TOOL_TYPES.indexOf(x.type) >= 0 ? x.type : '外圆刀'),
+        r:round2(clampNum(x.r, 0, 5, 0.4)),
+        tip:Math.round(clampNum(x.tip, 1, 9, 3)),
+        blade:round2(clampNum(x.blade, 0, 20, 0))
+      });
+    });
+  }
+  return out.length ? out : TOOL_DEFAULT.map(function(x){ return {t:x.t, type:x.type, r:x.r, tip:x.tip, blade:x.blade}; });
+}
+
+var CARD_DEFAULT = {
+  blankD:50, blankL:90, clampLen:25, partLen:60,
+  material:'45', threadD:30, threadP:3.5
+};
+var NUM_FIELDS = ['blankD','blankL','clampLen','partLen','threadD','threadP'];
+var RANGE = {
+  blankD:[1,500], blankL:[1,1000], clampLen:[0,500],
+  partLen:[0,1000], threadD:[1,100], threadP:[0.25,8]
+};
+
+function cardNormalize(raw){
+  var out = {};
+  NUM_FIELDS.forEach(function(k){
+    var v = Number(raw && raw[k]);
+    if(!isFinite(v)) v = CARD_DEFAULT[k];
+    var r = RANGE[k];
+    v = Math.min(r[1], Math.max(r[0], v));
+    out[k] = round2(v);
+  });
+  var mk = raw && raw.material;
+  out.material = MATERIALS.some(function(m){ return m.k === mk; }) ? mk : CARD_DEFAULT.material;
+  out.tools = toolsNormalize(raw && raw.tools);
+  return out;
+}
+
+/* 校验：返回问题清单，level 为 bad / warn */
+function cardValidate(card){
+  var issues = [];
+  if(!(card.blankD > 0)) issues.push({field:'blankD', level:'bad', msg:'毛坯直径必须大于 0'});
+  if(!(card.blankL > 0)) issues.push({field:'blankL', level:'bad', msg:'毛坯长度必须大于 0'});
+  if(card.clampLen >= card.blankL){
+    issues.push({field:'clampLen', level:'bad', msg:'夹持长度 ' + card.clampLen + ' 不小于毛坯长 ' + card.blankL + '，没有可加工余量'});
+  }
+  var usable = card.blankL - card.clampLen;
+  if(card.partLen > usable){
+    issues.push({field:'partLen', level:'bad', msg:'零件长 ' + card.partLen + ' 超出可用长度 ' + round2(usable) + '（毛坯长 − 夹持长）'});
+  }
+  if(card.partLen > 0 && card.partLen > usable * 0.98 && usable > 0){
+    issues.push({field:'partLen', level:'warn', msg:'零件长已接近可用长度上限，切断刀宽度没有留余量'});
+  }
+  if(card.clampLen > 0 && card.clampLen < card.blankD * 0.5){
+    issues.push({field:'clampLen', level:'warn', msg:'夹持长度不足毛坯直径的一半，装夹刚性偏低'});
+  }
+  if(!(card.threadD > 0)) issues.push({field:'threadD', level:'bad', msg:'螺纹公称直径必须大于 0'});
+  if(card.threadD > 0 && card.threadP > 0 && card.threadP >= card.threadD / 2){
+    issues.push({field:'threadP', level:'bad', msg:'螺距 ' + card.threadP + ' 相对公称直径 ' + card.threadD + ' 过大，不是有效螺纹'});
+  }
+  var tb = threadBasic(card.threadD, card.threadP);
+  if(tb && tb.d1exp <= 0){
+    issues.push({field:'threadP', level:'bad', msg:'按该螺距算出的经验小径不为正，参数不合理'});
+  }
+  var seenT = {};
+  (card.tools || []).forEach(function(t){
+    if(seenT[t.t]) issues.push({field:'tools', level:'bad', msg:'刀具表里 ' + t.t + ' 号刀出现了两次'});
+    seenT[t.t] = true;
+    if(t.type !== '切槽刀' && t.type !== '切断刀' && t.blade > 0){
+      issues.push({field:'tools', level:'warn', msg:t.t + ' 号刀是' + t.type + '，不该有刀宽 ' + t.blade + 'mm'});
+    }
+  });
+  return issues;
+}
+
+/* 材料查表 */
+function materialOf(k){
+  for(var i = 0; i < MATERIALS.length; i++) if(MATERIALS[i].k === k) return MATERIALS[i];
+  return null;
+}
+function threadLabel(t){ return 'M' + t.d + '×' + t.p + '（' + t.kind + '）'; }
+function threadByDP(d, p){
+  for(var i = 0; i < THREADS.length; i++){
+    if(THREADS[i].d === Math.round(d * 1000) / 1000 && Math.abs(THREADS[i].p - p) < 1e-9) return THREADS[i];
+  }
+  return null;
+}
+
+/* ========== 存储 ========== */
+var LSK = {card:'turnAid.card.v1'};
+function lsGet(k){
+  try{ var v = localStorage.getItem(k); return v ? JSON.parse(v) : null; }catch(e){ return null; }
+}
+function lsSet(k, v){
+  try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; }
+}
+function saveCard(card){ return lsSet(LSK.card, card); }
+function loadCard(){ return cardNormalize(lsGet(LSK.card) || CARD_DEFAULT); }
+
+function exportCard(card){
+  return JSON.stringify({app:'turn-aid', schema:1, card:card}, null, 2);
+}
+function importCard(text){
+  var o = null;
+  try{ o = JSON.parse(text); }catch(e){ return {ok:false, err:'不是合法的 JSON'}; }
+  if(!o || typeof o !== 'object') return {ok:false, err:'内容为空'};
+  var raw = o.card || o;
+  if(!raw || typeof raw !== 'object') return {ok:false, err:'缺少 card 字段'};
+  var has = NUM_FIELDS.some(function(k){ return typeof raw[k] === 'number'; });
+  if(!has) return {ok:false, err:'工件卡里没有任何数值字段'};
+  return {ok:true, card:cardNormalize(raw)};
+}
+
+/* ========== 渲染 ========== */
+var esc = (function(){
+  var m = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
+  return function(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return m[c]; }); };
+})();
+
+var state = {card:CARD_DEFAULT, cat:'全部', q:''};
+
+function renderCardIssues(issues){
+  var box = document.getElementById('card-issues');
+  if(!box) return;
+  if(!issues.length){
+    box.innerHTML = '<span class="pill ok">工件卡可用：' + MATERIALS.length + ' 种材料已就绪</span>';
+    return;
+  }
+  box.innerHTML = issues.map(function(it){
+    return '<span class="pill ' + (it.level === 'bad' ? 'bad' : 'warn') + '">' + esc(it.msg) + '</span>';
+  }).join('');
+}
+
+function fillCardForm(card){
+  NUM_FIELDS.forEach(function(k){
+    var el = document.getElementById('c-' + ({
+      blankD:'bd', blankL:'bl', clampLen:'cl', partLen:'pl', threadD:'td', threadP:'tp'
+    })[k]);
+    if(el) el.value = card[k];
+  });
+  var ms = document.getElementById('c-mat');
+  if(ms) ms.value = card.material;
+}
+
+function readCardForm(){
+  var raw = {};
+  var map = {blankD:'bd', blankL:'bl', clampLen:'cl', partLen:'pl', threadD:'td', threadP:'tp'};
+  Object.keys(map).forEach(function(k){
+    var el = document.getElementById('c-' + map[k]);
+    raw[k] = el ? Number(el.value) : CARD_DEFAULT[k];
+  });
+  var ms = document.getElementById('c-mat');
+  raw.material = ms ? ms.value : CARD_DEFAULT.material;
+  return cardNormalize(raw);
+}
+
+function applyCard(card, writeForm){
+  state.card = card;
+  if(writeForm) fillCardForm(card);
+  saveCard(card);
+  renderCardIssues(cardValidate(card));
+  if(typeof syncParamsFromCard === 'function') syncParamsFromCard(card);
+  if(typeof runLint === 'function' && document.getElementById('lint-out')) runLint();
+  if(pathState && pathState.model && document.getElementById('path-canvas')) loadPath(progGet() || TEMPLATES[3].code);
+}
+
+function renderChips(){
+  var cats = ['全部','运动','坐标系','循环','刀补','主轴与进给','M 代码'];
+  var box = document.getElementById('chips');
+  box.innerHTML = cats.map(function(c){
+    return '<button class="chip" type="button" data-cat="' + esc(c) + '" aria-pressed="' + (c === state.cat) + '">' + esc(c) + '</button>';
+  }).join('');
+}
+
+function allCodes(){
+  var a = GCODES.slice(), b = MCODES.slice();
+  return a.concat(b).sort(function(x, y){
+    var gx = x.c.charAt(0) === 'M' ? 1 : 0, gy = y.c.charAt(0) === 'M' ? 1 : 0;
+    if(gx !== gy) return gx - gy;
+    return x.c < y.c ? -1 : (x.c > y.c ? 1 : 0);
+  });
+}
+
+function renderCodes(){
+  var q = state.q.trim().toLowerCase();
+  var rows = allCodes().filter(function(it){
+    if(state.cat !== '全部' && it.cat !== state.cat) return false;
+    if(!q) return true;
+    return (it.c + ' ' + it.n + ' ' + it.d + ' ' + (it.dual || '')).toLowerCase().indexOf(q) >= 0;
+  });
+  var body = document.getElementById('code-body');
+  var empty = document.getElementById('code-empty');
+  body.innerHTML = rows.map(function(it){
+    return '<tr>' +
+      '<td class="code">' + esc(it.c) + '</td>' +
+      '<td>' + esc(it.n) + (it.dual ? '<span class="tag">双含义</span>' : '') + '</td>' +
+      '<td>' + esc(it.d) + (it.dual ? '<span class="alt">' + esc(it.dual) + '</span>' : '') + '</td>' +
+    '</tr>';
+  }).join('');
+  empty.hidden = rows.length > 0;
+}
+
+/* ========== E1 解析器 ========== */
+var GINDEX = {}, MINDEX = {};
+GCODES.forEach(function(g){ GINDEX[g.c] = g; });
+MCODES.forEach(function(m){ MINDEX[m.c] = m; });
+
+function pad2(n){ n = Math.round(n); return (n < 10 ? '0' : '') + n; }
+function gName(code){ var it = GINDEX[code]; return it ? it.n : '未收录指令'; }
+function mName(code){ var it = MINDEX[code]; return it ? it.n : '未收录 M 指令'; }
+function fmtNum(x){
+  if(x == null || !isFinite(x)) return '—';
+  var r = Math.round(x * 1000) / 1000;
+  return String(r);
+}
+
+/* 单行 → 语句 + 注释 + 地址字。分号视为语句结束符，一行多段只取首段并标记 multi */
+function tokenize(line){
+  var s = String(line == null ? '' : line);
+  var comment = '';
+  var cm = s.match(/\(([^)]*)\)/);
+  if(cm) comment = cm[1].trim();
+  s = s.replace(/\([^)]*\)/g, ' ');
+  var segs = s.split(';').filter(function(x){ return x.trim() !== ''; });
+  var multi = segs.length > 1;
+  s = (segs[0] || '').toUpperCase();
+  var code = s.trim();
+  var words = [], mm;
+  var re = /([A-Z])\s*([+-]?(?:\d+\.?\d*|\.\d+))/g;
+  while((mm = re.exec(s))) words.push({a:mm[1], num:parseFloat(mm[2]), raw:String(mm[1] + mm[2])});
+  var junk = s.replace(/[A-Z]\s*[+-]?(?:\d+\.?\d*|\.\d+)/g, '').replace(/[\s\/%]/g, '');
+  return {code:code, comment:comment, words:words, multi:multi, junk:junk};
+}
+
+function hasAddr(row, a){
+  for(var i = 0; i < row.words.length; i++) if(row.words[i].a === a) return true;
+  return false;
+}
+function addrOf(row, a){
+  for(var i = 0; i < row.words.length; i++) if(row.words[i].a === a) return row.words[i].num;
+  return null;
+}
+function gSet(row){
+  var out = [];
+  row.words.forEach(function(w){ if(w.a === 'G') out.push(Math.round(w.num)); });
+  return out;
+}
+
+/* 程序 → 行 + 循环块 + 统计 */
+function parseProgram(text){
+  var lines = String(text == null ? '' : text).replace(/\r\n?/g, '\n').split('\n');
+  var rows = [], labels = {};
+  var stats = {lines:lines.length, stmt:0, blank:0, comment:0, g:0, m:0, unknownG:0, multi:0, folded:0};
+
+  lines.forEach(function(raw, i){
+    var t = tokenize(raw);
+    var row = {ln:i + 1, raw:raw, code:t.code, comment:t.comment, words:t.words, multi:t.multi, junk:t.junk, label:null, kind:'stmt', inBlock:null, unknownG:[]};
+    if(!t.code){
+      row.kind = t.comment ? 'comment' : 'blank';
+      if(row.kind === 'comment') stats.comment++; else stats.blank++;
+    } else {
+      stats.stmt++;
+      if(t.multi) stats.multi++;
+      row.words.forEach(function(w){
+        if(w.a === 'N' && row.label == null) row.label = Math.round(w.num);
+        if(w.a === 'G'){
+          stats.g++;
+          var code = 'G' + pad2(w.num);
+          if(!GINDEX[code] && row.unknownG.indexOf(code) < 0) row.unknownG.push(code);
+        }
+        if(w.a === 'M') stats.m++;
+      });
+      if(row.unknownG.length) stats.unknownG += row.unknownG.length;
+      if(row.label != null && labels[row.label] == null) labels[row.label] = row.ln;
+    }
+    rows.push(row);
+  });
+
+  var blocks = [], pending = null;
+  rows.forEach(function(r){
+    if(r.kind !== 'stmt') return;
+    var gs = gSet(r);
+    var has = function(n){ return gs.indexOf(n) >= 0; };
+    var u = addrOf(r, 'U'), w = addrOf(r, 'W'), rr = addrOf(r, 'R');
+    var p = addrOf(r, 'P'), q = addrOf(r, 'Q');
+
+    if(has(71) || has(72) || has(73)){
+      var ty = has(71) ? 'G71' : (has(72) ? 'G72' : 'G73');
+      if(p != null && q != null){
+        var b = {type:ty, startLn:(pending ? pending.ln : r.ln), specLn:r.ln, p:Math.round(p), q:Math.round(q),
+                 u1:(pending ? pending.u : null), r1:(pending ? pending.r : null), w1:(pending ? pending.w : null),
+                 u2:u, w2:w, f:addrOf(r, 'F')};
+        b.bodyFrom = labels[b.p] || null;
+        b.bodyTo = labels[b.q] || null;
+        blocks.push(b);
+        pending = null;
+      } else {
+        pending = {ln:r.ln, u:u, r:rr, w:w};
+      }
+    } else if(has(76)){
+      if(addrOf(r, 'X') != null && addrOf(r, 'F') != null){
+        var b76 = {type:'G76', startLn:(pending ? pending.ln : r.ln), specLn:r.ln,
+                   p1:(pending ? pending.p : null), q1:(pending ? pending.q : null), r1:(pending ? pending.r : null),
+                   x:addrOf(r, 'X'), z:addrOf(r, 'Z'), p2:addrOf(r, 'P'), q2:addrOf(r, 'Q'), f:addrOf(r, 'F')};
+        blocks.push(b76);
+        pending = null;
+      } else {
+        pending = {ln:r.ln, p:p, q:addrOf(r, 'Q'), r:rr};
+      }
+    } else if(has(70) && p != null && q != null){
+      blocks.push({type:'G70', startLn:r.ln, specLn:r.ln, p:Math.round(p), q:Math.round(q),
+                   bodyFrom:labels[Math.round(p)] || null, bodyTo:labels[Math.round(q)] || null});
+      pending = null;
+    }
+  });
+
+  blocks.forEach(function(b){
+    if(b.bodyFrom && b.bodyTo && b.bodyTo > b.bodyFrom){
+      for(var i = b.bodyFrom; i <= b.bodyTo; i++){
+        if(rows[i - 1] && !rows[i - 1].inBlock) rows[i - 1].inBlock = b.type;
+      }
+    }
+  });
+  stats.folded = rows.filter(function(r){ return !!r.inBlock; }).length;
+  stats.blocks = blocks.length;
+  return {rows:rows, blocks:blocks, stats:stats, labels:labels};
+}
+
+/* G76 第一行 P 拆成 (精车次数)(倒角)(牙型角)，共 6 位 */
+function g76Head(p1){
+  var s = String(p1 == null ? '' : Math.round(p1));
+  while(s.length < 6) s = '0' + s;
+  if(s.length > 6) s = s.slice(-6);
+  return {m:s.slice(0, 2), r:s.slice(2, 4), a:s.slice(4, 6)};
+}
+
+function blockText(b){
+  var q = function(x, unit){ return (x == null || !isFinite(x)) ? '—' : fmtNum(x) + (unit || ''); };
+  if(b.type === 'G71' || b.type === 'G72'){
+    var how = b.type === 'G71' ? '轴向粗车（沿 Z 向分层、X 向进刀）' : '端面粗车（X 向分层、Z 向进刀）';
+    return b.type + ' 复合循环：对 N' + b.p + ' 到 N' + b.q + ' 的轮廓做' + how +
+      '。每刀切深 ' + q(b.u1, 'mm') + '（半径值）、退刀 ' + q(b.r1, 'mm') +
+      '；X 留 ' + q(b.u2, 'mm') + '（直径值）、Z 留 ' + q(b.w2, 'mm') + ' 作精车余量' +
+      (b.f != null ? '，进给 ' + fmtNum(b.f) + 'mm/r' : '') + '。';
+  }
+  if(b.type === 'G73'){
+    return 'G73 仿形粗车：轮廓 N' + b.p + '~N' + b.q + '，先让出 X' + q(b.u1, 'mm') + '、Z' + q(b.w1, 'mm') +
+      '，分 ' + q(b.r1, '次') + ' 走完；余量 U' + q(b.u2, 'mm') + '、W' + q(b.w2, 'mm') + '。';
+  }
+  if(b.type === 'G76'){
+    var h = g76Head(b.p1);
+    return 'G76 螺纹复合循环：精车 ' + h.m + ' 次、退尾 ' + h.r + '、牙型角 ' + h.a + '°；最小切深 ' +
+      q(b.q1 == null ? null : b.q1 / 1000, 'mm') + '、精车余量 ' + q(b.r1, 'mm') +
+      '。小径 X' + q(b.x, 'mm') + '、终点 Z' + q(b.z, 'mm') + '、牙高 ' +
+      q(b.p2 == null ? null : b.p2 / 1000, 'mm') + '、首刀切深 ' + q(b.q2 == null ? null : b.q2 / 1000, 'mm') +
+      '、螺距 ' + q(b.f, 'mm') + '。';
+  }
+  if(b.type === 'G70'){
+    return 'G70 精车：按 N' + b.p + '~N' + b.q + ' 的轮廓走精车，切除粗车留下的余量（P/Q 必须与粗车循环一致）。';
+  }
+  return b.type;
+}
+
+/* 地址字按上下文释义 */
+function describeWord(w, ctx, row){
+  var v = fmtNum(w.num), a = w.a;
+  var rc = ctx.rowCycle;
+  if(a === 'X') return 'X' + v + (rc ? '（循环终点直径）' : '（直径值，绝对坐标）');
+  if(a === 'Z') return 'Z' + v + (rc ? '（循环终点轴向）' : '（轴向，绝对坐标）');
+  if(a === 'U') return 'U' + v + '（X 向增量，直径值）';
+  if(a === 'W') return 'W' + v + '（Z 向增量）';
+  if(a === 'R'){
+    if(rc === 'G90' || rc === 'G94') return 'R' + v + '（循环起点相对终点的径向/轴向差值）';
+    if(ctx.motion === 'G02' || ctx.motion === 'G03') return 'R' + v + '（圆弧半径）';
+    if(rc === 'G92') return 'R' + v + '（锥螺纹的半径差，直螺纹省略）';
+    return 'R' + v + '（退刀量或倒角量，视所在循环而定）';
+  }
+  if(a === 'F'){
+    if(ctx.thread) return 'F' + v + '（螺纹螺距 mm/r）';
+    return 'F' + v + (ctx.feed === 'G98' ? '（进给 mm/min）' : '（每转进给 mm/r）');
+  }
+  if(a === 'S') return 'S' + v + (ctx.limitSpin ? '（主轴最高转速上限 r/min）' : (ctx.spin === 'G96' ? '（恒线速 m/min）' : '（主轴转速 r/min）'));
+  if(a === 'T'){
+    var t = String(w.raw).replace(/^[Tt]/, '');
+    while(t.length < 4) t = '0' + t;
+    return 'T' + t + '（' + parseInt(t.slice(0, 2), 10) + ' 号刀 + ' + parseInt(t.slice(2, 4), 10) + ' 号刀补）';
+  }
+  if(a === 'I') return 'I' + v + '（X 向圆心增量，半径值）';
+  if(a === 'K') return 'K' + v + '（Z 向圆心增量）';
+  if(a === 'P') return 'P' + v + (ctx.blockRef ? '（轮廓起始段号）' : '（子程序号或循环参数）');
+  if(a === 'Q') return 'Q' + v + (ctx.blockRef ? '（轮廓终止段号）' : '（循环参数或切深量）');
+  if(a === 'N') return 'N' + v + '（顺序号）';
+  return a + v;
+}
+
+function explainRow(row, ctx){
+  var titles = [], tWord = null, oWord = null;
+  row.words.forEach(function(w){
+    if(w.a === 'G') titles.push(String(w.raw).toUpperCase() + ' ' + gName('G' + pad2(w.num)));
+    if(w.a === 'M') titles.push(String(w.raw).toUpperCase() + ' ' + mName('M' + pad2(w.num)));
+    if(w.a === 'T') tWord = w;
+    if(w.a === 'O') oWord = w;
+  });
+
+  if(oWord && !titles.length && !tWord){
+    var os = String(oWord.raw).toUpperCase();
+    return '程序号 ' + os + '（O 后面 4 位数字，机床按它调用整个程序）';
+  }
+
+  if(tWord){
+    var ts = String(tWord.raw).replace(/^[Tt]/, '');
+    while(ts.length < 4) ts = '0' + ts;
+    titles.push('T' + ts + '（' + parseInt(ts.slice(0, 2), 10) + ' 号刀 + ' + parseInt(ts.slice(2, 4), 10) + ' 号刀补）');
+  }
+
+  var heads = gSet(row);
+  ctx.rowCycle = null;
+  if((heads.indexOf(90) >= 0 || heads.indexOf(92) >= 0 || heads.indexOf(94) >= 0) && (hasAddr(row, 'X') || hasAddr(row, 'Z') || hasAddr(row, 'R'))){
+    ctx.rowCycle = 'G' + (heads.indexOf(90) >= 0 ? 90 : (heads.indexOf(92) >= 0 ? 92 : 94));
+  }
+  ctx.thread = ctx.rowCycle === 'G92' || heads.indexOf(32) >= 0;
+  ctx.blockRef = addrOf(row, 'P') != null && addrOf(row, 'Q') != null && (heads.indexOf(70) >= 0 || heads.indexOf(71) >= 0);
+  ctx.limitSpin = heads.indexOf(50) >= 0 && hasAddr(row, 'S');
+
+  var note = '';
+  if(heads.indexOf(50) >= 0){
+    if(ctx.limitSpin) note = '。本行是限制主轴最高转速，不是设定工件坐标系';
+    else if(hasAddr(row, 'X') || hasAddr(row, 'Z')) note = '。本行是设定工件坐标系';
+  }
+  if(heads.indexOf(90) >= 0 && !ctx.rowCycle) note = '。本行是绝对值编程方式，不是 G90 外圆循环';
+  if(heads.indexOf(92) >= 0 && !ctx.rowCycle) note = '。本行是设定工件坐标系，不是 G92 螺纹循环';
+  if(heads.indexOf(94) >= 0 && !ctx.rowCycle) note = '。本行是每分钟进给方式，不是 G94 端面循环';
+
+  var parts = [];
+  row.words.forEach(function(w){
+    if(w.a === 'G' || w.a === 'M' || w.a === 'N' || w.a === 'T' || w.a === 'O') return;
+    parts.push(describeWord(w, ctx, row));
+  });
+  var txt = titles.length ? titles.join(' + ') : '（无 G/M 指令字）';
+  if(parts.length) txt += '：' + parts.join('；');
+  txt += note;
+  if(row.comment) txt += '。注释：' + row.comment;
+  if(row.multi) txt += '。注意：本行有多个分号分段，只解释首段。';
+  if(row.unknownG.length) txt += '。注意：' + row.unknownG.join('、') + ' 不在收录的指令表里，请核对。';
+  return txt;
+}
+
+/* 程序 → 逐行解释（循环块折叠） */
+function explainProgram(text){
+  var P = parseProgram(text);
+  var out = [];
+  var ctx = {feed:'G99', spin:'G97', comp:'G40', unit:'G21', motion:'G01', thread:false, rowCycle:null, blockRef:false};
+  var headMap = {}, specMap = {};
+
+  P.blocks.forEach(function(b){
+    headMap[b.startLn] = b;
+    if(b.specLn !== b.startLn) specMap[b.specLn] = b;
+  });
+
+  P.rows.forEach(function(r){
+    if(r.kind === 'blank'){ out.push({ln:r.ln, raw:r.raw, kind:'blank', text:''}); return; }
+    if(r.kind === 'comment'){ out.push({ln:r.ln, raw:r.raw, kind:'comment', text:'注释：' + r.comment}); return; }
+
+    gSet(r).forEach(function(n){
+      if(n === 96 || n === 97) ctx.spin = 'G' + n;
+      if(n === 98 || n === 99) ctx.feed = 'G' + n;
+      if(n === 40 || n === 41 || n === 42) ctx.comp = 'G' + n;
+      if(n === 20 || n === 21) ctx.unit = 'G' + n;
+      if(n === 0 || n === 1 || n === 2 || n === 3) ctx.motion = 'G0' + n;
+    });
+
+    if(r.inBlock){
+      out.push({ln:r.ln, raw:r.raw, kind:'body-in',
+        text:'（属于 ' + r.inBlock + ' 的轮廓段，被循环整体调用，不会按顺序单独执行）'});
+      return;
+    }
+    if(headMap[r.ln]){
+      out.push({ln:r.ln, raw:r.raw, kind:'block', text:blockText(headMap[r.ln])});
+      return;
+    }
+    if(specMap[r.ln]){
+      out.push({ln:r.ln, raw:r.raw, kind:'block',
+        text:'（' + specMap[r.ln].type + ' 的轮廓指定行：P' + specMap[r.ln].p + ' 是轮廓起点段号，Q' + specMap[r.ln].q + ' 是终点段号。与上一行合成一条指令）'});
+      return;
+    }
+    out.push({ln:r.ln, raw:r.raw, kind:'stmt', text:explainRow(r, ctx)});
+  });
+
+  return {rows:out, stats:P.stats, blocks:P.blocks};
+}
+
+/* ========== E2 校验引擎 ========== */
+/* 模态与位置扫描：给每条语句挂上当前位置、运动方式、主轴/进给/刀补状态 */
+function walkRows(P){
+  var motion = 'G00', feed = 'G99', spin = 'G97', comp = 'G40', x = null, z = null, s = null, fv = null, thread = false;
+  P.rows.forEach(function(r){
+    if(r.kind !== 'stmt') return;
+    var gsNow = gSet(r);
+    gsNow.forEach(function(n){
+      if(n <= 3) motion = 'G0' + n;
+      if(n === 98 || n === 99) feed = 'G' + n;
+      if(n === 96 || n === 97) spin = 'G' + n;
+      if(n === 40 || n === 41 || n === 42) comp = 'G' + n;
+    });
+    var cyc = gsNow.indexOf(32) >= 0 || gsNow.indexOf(33) >= 0 || gsNow.indexOf(76) >= 0 ||
+              (gsNow.indexOf(92) >= 0 && hasAddr(r, 'F'));
+    if(cyc) thread = true;
+    else if(gsNow.some(function(n){ return n <= 3 || n === 70 || n === 71 || n === 72 || n === 73 || n === 90 || n === 94; })) thread = false;
+    r.threadMode = thread;
+    var X = addrOf(r, 'X'), Z = addrOf(r, 'Z'), U = addrOf(r, 'U'), W = addrOf(r, 'W'), S = addrOf(r, 'S'), F = addrOf(r, 'F');
+    var px = x, pz = z;
+    /* U/W 只有落在运动语句或单一循环上才是增量位移；
+       G71/G72/G73 的 U/W 是切深与余量，G76 的 U/W 是锥度，都不能改变当前位置 */
+    var useInc = gsNow.length === 0 || gsNow.some(function(n){
+      return n <= 3 || n === 90 || n === 92 || n === 94 || n === 32 || n === 33;
+    });
+    if(X != null) x = X;
+    if(Z != null) z = Z;
+    if(U != null && useInc) x = (x == null ? U : x + U);
+    if(W != null && useInc) z = (z == null ? W : z + W);
+    if(S != null) s = S;
+    if(F != null) fv = F;
+    r.px = px; r.pz = pz; r.x = x; r.z = z;
+    r.motion = motion; r.feed = feed; r.spin = spin; r.comp = comp; r.spinVal = s; r.fVal = fv;
+  });
+}
+
+function stmtsOf(ctx){ return ctx.rows.filter(function(r){ return r.kind === 'stmt'; }); }
+function blocksOf(ctx, ty){ return ctx.blocks.filter(function(b){ return b.type === ty; }); }
+function isThreadRow(r){
+  var gs = gSet(r);
+  if(gs.indexOf(32) >= 0 || gs.indexOf(33) >= 0) return true;
+  if(gs.indexOf(92) >= 0 && hasAddr(r, 'F')) return true;
+  if(gs.indexOf(76) >= 0) return true;
+  return false;
+}
+function maxXof(ctx){
+  var m = null;
+  stmtsOf(ctx).forEach(function(r){ if(r.x != null && (m == null || r.x > m)) m = r.x; });
+  return m;
+}
+function minZof(ctx){
+  var m = null;
+  stmtsOf(ctx).forEach(function(r){
+    if(r.z == null) return;
+    var gs = gSet(r);
+    var moving = gs.indexOf(1) >= 0 || gs.indexOf(2) >= 0 || gs.indexOf(3) >= 0 || gs.indexOf(75) >= 0 || gs.indexOf(74) >= 0 || gs.indexOf(32) >= 0 || gs.indexOf(92) >= 0 || gs.indexOf(76) >= 0;
+    if(!moving) return;
+    if(m == null || r.z < m) m = r.z;
+  });
+  return m;
+}
+function contourX(ctx, b){
+  var xs = [];
+  if(!b.bodyFrom || !b.bodyTo) return xs;
+  for(var i = b.bodyFrom; i <= b.bodyTo; i++){
+    var r = ctx.rows[i - 1];
+    if(r && r.x != null) xs.push(r.x);
+  }
+  return xs;
+}
+function monotonic(xs){
+  if(xs.length < 2) return 0;
+  var up = true, down = true;
+  for(var i = 1; i < xs.length; i++){
+    if(xs[i] < xs[i - 1] - 1e-9) up = false;
+    if(xs[i] > xs[i - 1] + 1e-9) down = false;
+  }
+  return up ? 1 : (down ? -1 : 0);
+}
+function segLen(r){
+  if(r.x == null || r.z == null || r.px == null || r.pz == null) return null;
+  var dx = (r.x - r.px) / 2, dz = r.z - r.pz;
+  return Math.sqrt(dx * dx + dz * dz);
+}
+
+var RULES = [
+  /* --- 结构 9 条 --- */
+  {code:'S01', lv:'S', group:'结构', title:'缺少程序号', needs:[],
+   why:'没有 O 号，机床不把这个文件当成一个加工程序，无法调用。',
+   fix:'首行写成 O + 4 位数字，如 O0001;',
+   check:function(ctx){
+     var has = stmtsOf(ctx).some(function(r){ return r.words.some(function(w){ return w.a === 'O'; }); });
+     return has ? [] : [{line:1, msg:'整张程序没有 O 号'}];
+   }},
+  {code:'S02', lv:'E', group:'结构', title:'缺少程序结束指令', needs:[],
+   why:'程序跑完不复位，光标停在末尾、模态状态不恢复，下一件直接接着跑会出问题。',
+   fix:'末尾加 M30;（要回程序头复位）或 M02;',
+   check:function(ctx){
+     var s = stmtsOf(ctx);
+     var has = s.some(function(r){
+       return r.words.some(function(w){ return w.a === 'M' && (Math.round(w.num) === 30 || Math.round(w.num) === 2); });
+     });
+     return has ? [] : [{line:s.length ? s[s.length - 1].ln : 1, msg:'程序末没有 M30 或 M02'}];
+   }},
+  {code:'S03', lv:'W', group:'结构', title:'未指定公制', needs:[],
+   why:'若机床停留在英制状态，整张程序的尺寸都会被当成英寸，工件直接报废。',
+   fix:'程序头写 G21。',
+   check:function(ctx){
+     var has = stmtsOf(ctx).some(function(r){ return gSet(r).indexOf(21) >= 0; });
+     return has ? [] : [{line:1, msg:'没有 G21，尺寸单位未声明'}];
+   }},
+  {code:'S04', lv:'W', group:'结构', title:'未指定进给方式', needs:[],
+   why:'没写 G99 或 G98 时沿用上一程序的进给方式，F 值的含义（mm/r 还是 mm/min）会变。',
+   fix:'程序头写 G99（每转进给）。',
+   check:function(ctx){
+     var has = stmtsOf(ctx).some(function(r){
+       var gs = gSet(r); return gs.indexOf(98) >= 0 || gs.indexOf(99) >= 0;
+     });
+     return has ? [] : [{line:1, msg:'没有 G98/G99，进给单位未声明'}];
+   }},
+  {code:'S05', lv:'I', group:'结构', title:'未选工件坐标系', needs:[],
+   why:'没选 G54~G59 时，机床用当前残留的坐标系；装夹一变坐标就全错。',
+   fix:'程序头写 G54（或对刀时用 G50 设定）。',
+   check:function(ctx){
+     var has = stmtsOf(ctx).some(function(r){
+       var gs = gSet(r);
+       for(var n = 54; n <= 59; n++) if(gs.indexOf(n) >= 0) return true;
+       return gs.indexOf(50) >= 0 && (hasAddr(r, 'X') || hasAddr(r, 'Z'));
+     });
+     return has ? [] : [{line:1, msg:'没有指定 G54~G59，也没有用 G50 设定坐标系'}];
+   }},
+  {code:'S06', lv:'E', group:'结构', title:'T 指令格式不对', needs:[],
+   why:'车床 T 指令是 4 位：前两位刀号、后两位刀补号。写成 T1 或 T101 系统按另一种规则解释，可能选错刀补。',
+   fix:'写成 T0101（1 号刀 + 1 号刀补）。',
+   check:function(ctx){
+     var out = [];
+     stmtsOf(ctx).forEach(function(r){
+       r.words.forEach(function(w){
+         if(w.a !== 'T') return;
+         var d = String(w.raw).replace(/^[Tt]/, '');
+         if(d.length !== 4) out.push({line:r.ln, msg:'T' + d + ' 不是 4 位'});
+       });
+     });
+     return out;
+   }},
+  {code:'S07', lv:'W', group:'结构', title:'刀号与刀补号不一致', needs:[],
+   why:'T0102 表示用 1 号刀却调用 2 号刀补；刀补表里的半径与方位号属于另一把刀，轮廓会整体偏。',
+   fix:'改成 T0101，或在刀补表里确认 2 号刀补确实是这把刀。',
+   check:function(ctx){
+     var out = [];
+     stmtsOf(ctx).forEach(function(r){
+       r.words.forEach(function(w){
+         if(w.a !== 'T') return;
+         var d = String(w.raw).replace(/^[Tt]/, '');
+         if(d.length !== 4) return;
+         if(d.slice(0, 2) !== d.slice(2, 4)) out.push({line:r.ln, msg:'T' + d + ' 前后两位不同'});
+       });
+     });
+     return out;
+   }},
+  {code:'S08', lv:'W', group:'结构', title:'M30 之后还有语句', needs:[],
+   why:'M30 之后机床已经复位，这些段永远不会执行，学生会误以为它们生效了。',
+   fix:'删除，或移到 M30 之前。',
+   check:function(ctx){
+     var s = stmtsOf(ctx), cut = -1;
+     s.forEach(function(r, i){
+       if(r.words.some(function(w){ return w.a === 'M' && (Math.round(w.num) === 30 || Math.round(w.num) === 2); })) cut = i;
+     });
+     if(cut < 0) return [];
+     return s.slice(cut + 1).map(function(r){ return {line:r.ln, msg:'M30 之后还有语句'}; });
+   }},
+  {code:'S09', lv:'I', group:'结构', title:'O 号重复', needs:[],
+   why:'同一程序号出现两次，后一个会覆盖前一个，调用行为不确定。',
+   fix:'改成不同的 O 号。',
+   check:function(ctx){
+     var seen = {}, out = [];
+     stmtsOf(ctx).forEach(function(r){
+       r.words.forEach(function(w){
+         if(w.a !== 'O') return;
+         var k = String(w.raw).toUpperCase();
+         if(seen[k]) out.push({line:r.ln, msg:k + ' 重复出现'});
+         seen[k] = true;
+       });
+     });
+     return out;
+   }},
+
+  /* --- 循环 15 条 --- */
+  {code:'C01', lv:'E', group:'循环', title:'复合循环缺 P/Q 轮廓段', needs:[],
+   why:'G71/G72/G73 必须用第二行的 P、Q 指定轮廓起止段号，缺了系统不知道车哪一段。',
+   fix:'第二行写成 G71 P10 Q20 U0.5 W0.1 F0.25;',
+   check:function(ctx){
+     var out = [], s = stmtsOf(ctx);
+     s.forEach(function(r, i){
+       var gs = gSet(r);
+       if(!(gs.indexOf(71) >= 0 || gs.indexOf(72) >= 0 || gs.indexOf(73) >= 0)) return;
+       if(hasAddr(r, 'P') && hasAddr(r, 'Q')) return;
+       var nxt = s[i + 1];
+       if(nxt && gSet(nxt).some(function(n){ return n === 71 || n === 72 || n === 73; }) && hasAddr(nxt, 'P') && hasAddr(nxt, 'Q')) return;
+       out.push({line:r.ln, msg:'该循环没有 P/Q 轮廓段'});
+     });
+     return out;
+   }},
+  {code:'C02', lv:'S', group:'循环', title:'P/Q 指定的轮廓段不存在', needs:[],
+   why:'P 或 Q 指向的 N 段号在程序里找不到，系统无法确定轮廓范围，执行到该行会报警，程序跑不下去。',
+   fix:'核对 N 段号：P 与 Q 对应的 N 标号必须真实存在且 P 在 Q 之前。',
+   check:function(ctx){
+     var out = [];
+     ctx.blocks.forEach(function(b){
+       if(b.type !== 'G71' && b.type !== 'G72' && b.type !== 'G73' && b.type !== 'G70') return;
+       if(!b.bodyFrom) out.push({line:b.specLn, msg:'找不到 N' + b.p + ' 段（P 指定的起点）'});
+       if(!b.bodyTo) out.push({line:b.specLn, msg:'找不到 N' + b.q + ' 段（Q 指定的终点）'});
+     });
+     return out;
+   }},
+  {code:'C03', lv:'W', group:'循环', title:'粗车轮廓 X 不单调', needs:[],
+   why:'G71/G72 Ⅰ 型要求轮廓 X 单调变化；出现凹坑（先大后小再大）时 Ⅰ 型会过切或报警。',
+   fix:'改用 Ⅱ 型（P 段首行同时给出 X 与 Z 两个方向的移动），或把凹坑改到精车后单独加工。',
+   check:function(ctx){
+     var out = [];
+     blocksOf(ctx, 'G71').concat(blocksOf(ctx, 'G72')).forEach(function(b){
+       var xs = contourX(ctx, b);
+       if(xs.length >= 2 && monotonic(xs) === 0) out.push({line:b.specLn, msg:'轮廓 X 先增后减（或相反），不是单调轮廓'});
+     });
+     return out;
+   }},
+  {code:'C04', lv:'E', group:'循环', title:'粗车循环参数行缺 U', needs:[],
+   why:'G71/G72 第一行的 U 是每刀切深（半径值），缺了系统按 0 处理，等于不切削。',
+   fix:'写成 G71 U2 R1;（切深 2mm、退刀 1mm）。',
+   check:function(ctx){
+     var out = [];
+     stmtsOf(ctx).forEach(function(r){
+       var gs = gSet(r);
+       if(!(gs.indexOf(71) >= 0 || gs.indexOf(72) >= 0)) return;
+       if(hasAddr(r, 'P') || hasAddr(r, 'Q')) return;
+       if(!hasAddr(r, 'U')) out.push({line:r.ln, msg:'参数行没有 U（每刀切深）'});
+     });
+     return out;
+   }},
+  {code:'C05', lv:'E', group:'循环', title:'G71 余量符号与轮廓方向不符', needs:[],
+   why:'外圆粗车 X 向余量 U 应为正（往外留）；内孔粗车轮廓 X 递减，U 应为负（往孔壁内留）。符号写反会把余量留到另一边。',
+   fix:'外圆 U 取正、内孔 U 取负。',
+   check:function(ctx){
+     var out = [];
+     blocksOf(ctx, 'G71').forEach(function(b){
+       var dir = monotonic(contourX(ctx, b));
+       if(b.u2 == null) return;
+       if(dir === -1 && b.u2 > 0) out.push({line:b.specLn, msg:'轮廓 X 递减（内孔），U 应为负值'});
+       if(dir === 1 && b.u2 < 0) out.push({line:b.specLn, msg:'轮廓 X 递增（外圆），U 应为正值'});
+     });
+     return out;
+   }},
+  {code:'C06', lv:'W', group:'循环', title:'精车余量偏大', needs:[],
+   why:'X 向余量超过 1mm 时，精车一刀切不完，尺寸容易超差、表面也差。',
+   fix:'把 U 收到 0.3~0.5mm，分粗精两道。',
+   check:function(ctx){
+     var out = [];
+     blocksOf(ctx, 'G71').concat(blocksOf(ctx, 'G73')).forEach(function(b){
+       if(b.u2 != null && Math.abs(b.u2) > 1) out.push({line:b.specLn, msg:'X 向余量 ' + b.u2 + 'mm 偏大'});
+     });
+     return out;
+   }},
+  {code:'C07', lv:'E', group:'循环', title:'G70 与粗车的 P/Q 不一致', needs:[],
+   why:'G70 精车按自己的 P/Q 重新走轮廓；与粗车用的段号不一致时，精车走的是另一段形状，尺寸对不上。',
+   fix:'G70 的 P/Q 与 G71 的第二行保持一致。',
+   check:function(ctx){
+     var out = [], rough = blocksOf(ctx, 'G71').concat(blocksOf(ctx, 'G72')).concat(blocksOf(ctx, 'G73'));
+     blocksOf(ctx, 'G70').forEach(function(g){
+       if(!rough.length) return;
+       var m = rough.some(function(r){ return r.p === g.p && r.q === g.q; });
+       if(!m) out.push({line:g.specLn, msg:'G70 用 P' + g.p + ' Q' + g.q + '，与粗车循环的段号不一致'});
+     });
+     return out;
+   }},
+  {code:'C08', lv:'E', group:'循环', title:'G73 参数行不全', needs:[],
+   why:'G73 第一行需要 U（X 向退让）、W（Z 向退让）、R（分刀次数）三个参数，缺一个循环就走不出预期层数。',
+   fix:'写成 G73 U6 W0 R4;',
+   check:function(ctx){
+     var out = [];
+     stmtsOf(ctx).forEach(function(r){
+       if(gSet(r).indexOf(73) < 0 || hasAddr(r, 'P') || hasAddr(r, 'Q')) return;
+       var miss = ['U', 'W', 'R'].filter(function(a){ return !hasAddr(r, a); });
+       if(miss.length) out.push({line:r.ln, msg:'缺少 ' + miss.join('、') + ' 参数'});
+     });
+     return out;
+   }},
+  {code:'C09', lv:'W', group:'循环', title:'G72 端面循环余量方向可疑', needs:[],
+   why:'G72 沿 X 向分层、Z 向进刀，第二行的 U 是 X 向余量、W 是 Z 向余量，写反了余量留错方向。',
+   fix:'G72 P Q U(X 余量) W(Z 余量) F;',
+   check:function(ctx){
+     var out = [];
+     blocksOf(ctx, 'G72').forEach(function(b){
+       if(b.w2 != null && b.u2 != null && Math.abs(b.w2) > Math.abs(b.u2) * 5){
+         out.push({line:b.specLn, msg:'Z 向余量 ' + b.w2 + 'mm 明显大于 X 向 ' + b.u2 + 'mm，参数可能写反'});
+       }
+     });
+     return out;
+   }},
+  {code:'C10', lv:'E', group:'循环', title:'切槽循环缺 P', needs:[],
+   why:'G74/G75 的 P 是每次啄式切入量（微米）。缺了系统按 0 处理，等于不往下走。',
+   fix:'写成 G75 X40 P2000 F0.08;（每次切 2mm）。',
+   check:function(ctx){
+     var out = [];
+     stmtsOf(ctx).forEach(function(r){
+       var gs = gSet(r);
+       var isGroove = gs.indexOf(75) >= 0 && hasAddr(r, 'X');
+       var isFace = gs.indexOf(74) >= 0 && hasAddr(r, 'Z');
+       if(!isGroove && !isFace) return;
+       var first = !hasAddr(r, 'R');
+       if(first && !hasAddr(r, 'P')) out.push({line:r.ln, msg:'切槽循环没有 P（每次切入量）'});
+     });
+     return out;
+   }},
+  {code:'C11', lv:'E', group:'循环', title:'G75 切槽方向反了', needs:[],
+   why:'径向切槽的 X 必须比当前直径小；X 比起点还大等于往外切，切不到槽。',
+   fix:'把 X 改成小于当前直径的目标值。',
+   check:function(ctx){
+     var out = [];
+     stmtsOf(ctx).forEach(function(r){
+       if(gSet(r).indexOf(75) < 0 || !hasAddr(r, 'X')) return;
+       if(r.px != null && r.x != null && r.x >= r.px) out.push({line:r.ln, msg:'X' + r.x + ' 不小于切槽前的 X' + r.px});
+     });
+     return out;
+   }},
+  {code:'C12', lv:'S', group:'循环', title:'G76 第一行 P 参数不完整', needs:[],
+   why:'G76 第一行的 P 是 6 位数：精车次数(2) + 退尾量(2) + 牙型角(2)。位数不够时系统会按错位的组合解释，牙型角可能变成别的值，螺纹直接报废。',
+   fix:'写成 G76 P021060 Q100 R0.05;（精车 2 次、退尾 1.0、牙型角 60°）。',
+   check:function(ctx){
+     var out = [];
+     blocksOf(ctx, 'G76').forEach(function(b){
+       if(b.p1 == null) { out.push({line:b.startLn, msg:'第一行没有 P 参数'}); return; }
+       if(String(Math.round(b.p1)).length < 5) out.push({line:b.startLn, msg:'P' + b.p1 + ' 不足 6 位，牙型角无从解析'});
+     });
+     return out;
+   }},
+  {code:'C13', lv:'E', group:'循环', title:'G76 牙高超过理论值', needs:[],
+   why:'牙高 P（微米）超过 0.6495×螺距时，刀尖切到螺纹底线以下，小径偏小、牙型瘦，通止规都过不了。',
+   fix:'把 P 改到 0.6495×螺距 附近（M30×3.5 约为 2273）。',
+   check:function(ctx){
+     var out = [];
+     blocksOf(ctx, 'G76').forEach(function(b){
+       if(b.p2 == null || b.f == null) return;
+       var h = 0.6495 * b.f;
+       if(b.p2 / 1000 > h + 0.05) out.push({line:b.specLn, msg:'牙高 ' + fmtNum(b.p2 / 1000) + 'mm 超过理论值 ' + fmtNum(round2(h)) + 'mm'});
+     });
+     return out;
+   }},
+  {code:'C14', lv:'E', group:'循环', title:'G76 第二行缺小径 X', needs:[],
+   why:'G76 第二行的 X 是螺纹小径，缺了系统不知道切到哪个直径。',
+   fix:'第二行写全：G76 X(小径) Z(终点) P(牙高) Q(首刀切深) F(螺距)。',
+   check:function(ctx){
+     var out = [], s = stmtsOf(ctx);
+     s.forEach(function(r, i){
+       if(gSet(r).indexOf(76) < 0) return;
+       if(hasAddr(r, 'X')) return;
+       var nxt = s[i + 1];
+       if(nxt && gSet(nxt).indexOf(76) >= 0 && hasAddr(nxt, 'X')) return;
+       out.push({line:r.ln, msg:'G76 没有给出小径 X'});
+     });
+     return out;
+   }},
+  {code:'C15', lv:'E', group:'循环', title:'循环块内出现换刀', needs:[],
+   why:'G71/G73 的轮廓段会被循环反复调用；块内出现 T 指令会中断循环，机床可能停在轮廓中间。',
+   fix:'把换刀移到循环之前或循环结束之后。',
+   check:function(ctx){
+     var out = [];
+     ctx.blocks.forEach(function(b){
+       if(!b.bodyFrom || !b.bodyTo) return;
+       for(var i = b.bodyFrom; i <= b.bodyTo; i++){
+         var r = ctx.rows[i - 1];
+         if(r && r.words.some(function(w){ return w.a === 'T'; })) out.push({line:r.ln, msg:'循环轮廓段内出现换刀指令'});
+       }
+     });
+     return out;
+   }},
+
+  /* --- 刀补 7 条 --- */
+  {code:'T01', lv:'E', group:'刀补', title:'刀补未取消', needs:[],
+   why:'刀补一直在生效，后面的定位、退刀都按补偿后的轨迹走，接刀处会过切或留台阶。',
+   fix:'轮廓走完立即 G40，并回到安全位置。',
+   check:function(ctx){
+     var open = null;
+     stmtsOf(ctx).forEach(function(r){
+       if(r.comp === 'G41' || r.comp === 'G42') open = r;
+       if(r.comp === 'G40') open = null;
+     });
+     return open ? [{line:open.ln, msg:'这里建立的刀补到程序结束都没有取消'}] : [];
+   }},
+  {code:'T02', lv:'E', group:'刀补', title:'在圆弧段建立或取消刀补', needs:[],
+   why:'圆弧段建立/撤销刀补时，系统无法在曲线起点算出正确的偏置起点，FANUC 会报警或走出异常轨迹。',
+   fix:'把 G41/G42/G40 放在 G00 或 G01 的直线段上。',
+   check:function(ctx){
+     var out = [];
+     stmtsOf(ctx).forEach(function(r){
+       var gs = gSet(r);
+       var comp = gs.indexOf(40) >= 0 || gs.indexOf(41) >= 0 || gs.indexOf(42) >= 0;
+       var arc = gs.indexOf(2) >= 0 || gs.indexOf(3) >= 0;
+       if(comp && arc) out.push({line:r.ln, msg:'刀补与圆弧写在同一段'});
+     });
+     return out;
+   }},
+  {code:'T03', lv:'S', group:'刀补', title:'刀具号不在刀具表里', needs:['tools'],
+   why:'刀补表里没有这个刀号时，系统按 D0 处理，刀心直接走在编程轮廓上，所有外形尺寸都会小一个刀尖半径。',
+   fix:'在刀具表里补上该刀号，或把 T 改成已有的刀号。',
+   check:function(ctx){
+     var out = [];
+     stmtsOf(ctx).forEach(function(r){
+       r.words.forEach(function(w){
+         if(w.a !== 'T') return;
+         var d = String(w.raw).replace(/^[Tt]/, '');
+         if(d.length !== 4) return;
+         var tno = parseInt(d.slice(0, 2), 10);
+         if(!ctx.tool(tno)) out.push({line:r.ln, msg:'刀具表里没有 ' + tno + ' 号刀'});
+       });
+     });
+     return out;
+   }},
+  {code:'T04', lv:'E', group:'刀补', title:'刀尖方位号与补偿方向冲突', needs:['tools'],
+   why:'外圆右手刀（方位号 3）车外圆配 G42；内孔刀（方位号 2）配 G41。方向配反，轮廓整体偏一个刀尖半径。',
+   fix:'外圆刀用 G42、内孔刀用 G41，先确认方位号再选方向。',
+   check:function(ctx){
+     var out = [], cur = null;
+     stmtsOf(ctx).forEach(function(r){
+       r.words.forEach(function(w){
+         if(w.a === 'T'){
+           var d = String(w.raw).replace(/^[Tt]/, '');
+           if(d.length === 4) cur = ctx.tool(parseInt(d.slice(0, 2), 10));
+         }
+       });
+       if(r.comp === 'G41' || r.comp === 'G42'){
+         if(!cur) return;
+         if(r.comp === 'G42' && cur.tip === 2) out.push({line:r.ln, msg:cur.t + ' 号刀是内孔刀（方位号 2），应配 G41'});
+         if(r.comp === 'G41' && cur.tip === 3) out.push({line:r.ln, msg:cur.t + ' 号刀是外圆刀（方位号 3），应配 G42'});
+       }
+     });
+     return out;
+   }},
+  {code:'T05', lv:'W', group:'刀补', title:'建立刀补的位移太小', needs:['tools'],
+   why:'建立刀补那一段的移动量小于刀尖半径时，系统来不及把偏置量走完，起刀处会留下过切痕迹。',
+   fix:'让建立刀补段的移动量大于刀尖半径（通常 2 倍以上）。',
+   check:function(ctx){
+     var out = [], prev = 'G40', cur = null;
+     stmtsOf(ctx).forEach(function(r){
+       r.words.forEach(function(w){
+         if(w.a === 'T'){
+           var d = String(w.raw).replace(/^[Tt]/, '');
+           if(d.length === 4) cur = ctx.tool(parseInt(d.slice(0, 2), 10));
+         }
+       });
+       if((r.comp === 'G41' || r.comp === 'G42') && prev === 'G40' && cur){
+         var L = segLen(r);
+         if(L != null && L < cur.r) out.push({line:r.ln, msg:'建立刀补段位移 ' + fmtNum(round2(L)) + 'mm，小于刀尖半径 ' + fmtNum(cur.r) + 'mm'});
+       }
+       prev = r.comp;
+     });
+     return out;
+   }},
+  {code:'T06', lv:'W', group:'刀补', title:'切槽/切断刀用了刀补', needs:['tools'],
+   why:'切槽与切断是径向切入，刀补按轮廓法向偏置会把槽宽切小或切断位置偏移。',
+   fix:'切槽、切断时保持 G40，用刀宽直接对刀。',
+   check:function(ctx){
+     var out = [], cur = null;
+     stmtsOf(ctx).forEach(function(r){
+       r.words.forEach(function(w){
+         if(w.a === 'T'){
+           var d = String(w.raw).replace(/^[Tt]/, '');
+           if(d.length === 4) cur = ctx.tool(parseInt(d.slice(0, 2), 10));
+         }
+       });
+       if((r.comp === 'G41' || r.comp === 'G42') && cur && (cur.type === '切槽刀' || cur.type === '切断刀')){
+         out.push({line:r.ln, msg:cur.type + '用了刀补'});
+       }
+     });
+     return out;
+   }},
+  {code:'T07', lv:'I', group:'刀补', title:'有锥面/圆弧但未用刀补', needs:[],
+   why:'未使用刀尖半径补偿时，锥面与圆弧会被多切或少切，误差约等于刀尖半径的一半以上。',
+   fix:'讲清误差来源；要求精度时加 G41/G42 并在刀具表里填刀尖半径。',
+   check:function(ctx){
+     var out = [];
+     var hasComp = stmtsOf(ctx).some(function(r){ return r.comp === 'G41' || r.comp === 'G42'; });
+     if(hasComp) return out;
+     stmtsOf(ctx).forEach(function(r){
+       if(r.motion === 'G02' || r.motion === 'G03'){
+         out.push({line:r.ln, msg:'圆弧未使用刀尖半径补偿'});
+         return;
+       }
+       if(r.motion === 'G01' && hasAddr(r, 'X') && hasAddr(r, 'Z') && r.px != null && r.pz != null){
+         var dx = r.x - r.px, dz = r.z - r.pz;
+         if(Math.abs(dx) > 0.01 && Math.abs(dz) > 0.01) out.push({line:r.ln, msg:'锥面未使用刀尖半径补偿'});
+       }
+     });
+     return out.slice(0, 3);
+   }},
+
+  /* --- 螺纹 7 条 --- */
+  {code:'M01', lv:'E', group:'螺纹', title:'螺纹段没有进给', needs:[],
+   why:'螺纹是靠主轴每转一圈进给一个螺距切出来的，没有 F 就无法与主轴同步。',
+   fix:'给出 F＝螺距（G99 每转进给时）。',
+   check:function(ctx){
+     var out = [];
+     stmtsOf(ctx).forEach(function(r){
+       var gs = gSet(r);
+       if((gs.indexOf(32) >= 0 || gs.indexOf(33) >= 0) && !hasAddr(r, 'F')) out.push({line:r.ln, msg:'螺纹切削没有 F'});
+     });
+     return out;
+   }},
+  {code:'M02', lv:'E', group:'螺纹', title:'F 与螺距不一致', needs:['threadP'],
+   why:'每转进给下 F 必须等于螺距，否则螺纹乱扣，牙距不对，通规进不去。',
+   fix:'把 F 改成与螺距相同的值（当前工件卡螺距 ' + '' + '）。',
+   check:function(ctx){
+     var out = [], p = ctx.card.threadP;
+     stmtsOf(ctx).forEach(function(r){
+       var gs = gSet(r);
+       var isTh = gs.indexOf(32) >= 0 || gs.indexOf(33) >= 0 || (gs.indexOf(92) >= 0 && hasAddr(r, 'F'));
+       if(!isTh || !hasAddr(r, 'F')) return;
+       var f = addrOf(r, 'F');
+       if(Math.abs(f - p) > 0.011) out.push({line:r.ln, msg:'F' + fmtNum(f) + ' 与螺距 ' + fmtNum(p) + 'mm 不符'});
+     });
+     return out;
+   }},
+  {code:'M03', lv:'E', group:'螺纹', title:'螺纹时用了恒线速', needs:[],
+   why:'G96 让转速随直径变化，车螺纹时转速一变螺距就乱（主轴与进给失去固定比例）。',
+   fix:'螺纹工序前改用 G97 指定固定转速。',
+   check:function(ctx){
+     var out = [];
+     stmtsOf(ctx).forEach(function(r){
+       if(r.threadMode && r.spin === 'G96') out.push({line:r.ln, msg:'当前仍是 G96 恒线速'});
+     });
+     return out.length ? [out[0]] : [];
+   }},
+  {code:'M04', lv:'W', group:'螺纹', title:'螺纹末端退刀空间不足', needs:['clampLen'],
+   why:'螺纹终点太靠近卡盘侧，刀具来不及退刀就撞工件；有退刀槽时应退进槽里。',
+   fix:'留出至少 3mm 退刀距离，或加深退刀槽。',
+   check:function(ctx){
+     var out = [], usable = ctx.card.blankL - ctx.card.clampLen;
+     stmtsOf(ctx).forEach(function(r){
+       if(!isThreadRow(r) || r.z == null) return;
+       if(Math.abs(r.z) > usable - 3) out.push({line:r.ln, msg:'终点 Z' + fmtNum(r.z) + ' 距夹持端只剩 ' + fmtNum(round2(usable - Math.abs(r.z))) + 'mm'});
+     });
+     return out;
+   }},
+  {code:'M05', lv:'E', group:'螺纹', title:'单刀切深过大', needs:[],
+   why:'一刀切掉大半牙深时，刀尖受力过大容易崩刃、让刀，牙型也不准。',
+   fix:'每刀不超过牙深的 60%，逐刀递减，最后留一刀光整。',
+   check:function(ctx){
+     var out = [], prevThreadX = null;
+     stmtsOf(ctx).forEach(function(r){
+       if(!r.threadMode || !hasAddr(r, 'X')) return;
+       var f = addrOf(r, 'F');
+       if(f == null) f = r.fVal;
+       if(prevThreadX == null){
+         prevThreadX = r.x;
+         return;
+       }
+       if(f){
+         var depth = (prevThreadX - r.x) / 2;
+         if(depth > 0.6495 * f * 0.6) out.push({line:r.ln, msg:'这一刀切深 ' + fmtNum(round2(depth)) + 'mm，超过牙深的 60%'});
+       }
+       prevThreadX = r.x;
+     });
+     return out;
+   }},
+  {code:'M06', lv:'W', group:'螺纹', title:'同一螺纹混用 G76 与 G92', needs:[],
+   why:'两种螺纹循环的进刀方式不同（G76 自动递减、G92 手工分层），混用时容易重复切或漏切。',
+   fix:'同一段螺纹只用一种方式。',
+   check:function(ctx){
+     var has76 = stmtsOf(ctx).some(function(r){ return gSet(r).indexOf(76) >= 0; });
+     var has92 = stmtsOf(ctx).some(function(r){ return gSet(r).indexOf(92) >= 0 && hasAddr(r, 'F'); });
+     return (has76 && has92) ? [{line:0, msg:'程序里同时出现 G76 与 G92 螺纹循环'}] : [];
+   }},
+  {code:'M07', lv:'W', group:'螺纹', title:'螺纹转速过高', needs:[],
+   why:'车螺纹转速过高时主轴来不及正反转与同步，起刀与收尾处容易乱扣。',
+   fix:'螺纹工序转速控制在 300~800 r/min。',
+   check:function(ctx){
+     var out = [];
+     stmtsOf(ctx).forEach(function(r){
+       if(r.threadMode && r.spinVal != null && r.spinVal > 1200) out.push({line:r.ln, msg:'螺纹时转速 S' + fmtNum(r.spinVal) + ' 偏高'});
+     });
+     return out.length ? [out[0]] : [];
+   }},
+
+  /* --- 参数安全 8 条 --- */
+  {code:'P01', lv:'E', group:'参数安全', title:'主轴未启动就进给', needs:[],
+   why:'主轴没转就进给，等于用刀具硬顶工件，会崩刃或撞刀。',
+   fix:'进给前加 M03 S___。',
+   check:function(ctx){
+     var started = false, out = [];
+     stmtsOf(ctx).forEach(function(r){
+       r.words.forEach(function(w){ if(w.a === 'M' && (Math.round(w.num) === 3 || Math.round(w.num) === 4)) started = true; });
+       var gs = gSet(r);
+       var cutting = gs.indexOf(1) >= 0 || gs.indexOf(2) >= 0 || gs.indexOf(3) >= 0 || gs.indexOf(32) >= 0;
+       if(cutting && !started && !out.length) out.push({line:r.ln, msg:'切削前没有 M03/M04 启动主轴'});
+     });
+     return out;
+   }},
+  {code:'P02', lv:'W', group:'参数安全', title:'恒线速未限最高转速', needs:[],
+   why:'G96 让转速随直径变小而升高，直径接近 0 时转速会飞到机床上限，变频器报警甚至飞车。',
+   fix:'G96 之前写 G50 S____ 限定最高转速。',
+   check:function(ctx){
+     var has96 = stmtsOf(ctx).some(function(r){ return gSet(r).indexOf(96) >= 0; });
+     if(!has96) return [];
+     var hasLimit = stmtsOf(ctx).some(function(r){ return gSet(r).indexOf(50) >= 0 && hasAddr(r, 'S'); });
+     return hasLimit ? [] : [{line:0, msg:'用了 G96 但没有 G50 S 限速'}];
+   }},
+  {code:'P03', lv:'W', group:'参数安全', title:'线速度超出材料推荐', needs:['material'],
+   why:'线速度超过材料与刀片能力时，刃口迅速磨损，表面发亮或出现积屑瘤。',
+   fix:'把 G96 的 S 降到材料推荐值附近。',
+   check:function(ctx){
+     var m = materialOf(ctx.card.material), limit = m.vcF * 1.2, out = [];
+     stmtsOf(ctx).forEach(function(r){
+       if(gSet(r).indexOf(96) < 0) return;
+       var s = addrOf(r, 'S');
+       if(s != null && s > limit) out.push({line:r.ln, msg:'S' + fmtNum(s) + ' 超过 ' + m.name + ' 精车上限 ' + fmtNum(round2(limit)) + ' m/min'});
+     });
+     return out;
+   }},
+  {code:'P04', lv:'S', group:'参数安全', title:'X 值疑似按半径编程', needs:['blankD'],
+   why:'本机床 X 轴按直径编程，图样 Φ50 应写 X50。写成 X25 系统会按 Φ25 加工，直径小一半，工件直接报废。',
+   fix:'核对图样标注，把 X 值改成直径值；确需半径编程先改系统参数 No.1006#3。',
+   check:function(ctx){
+     /* 只统计切削行：退刀点的 X100 会把最大值撑住，掩盖“整张程序都按半径写”的情况 */
+     var mx = null;
+     stmtsOf(ctx).forEach(function(r){
+       if(r.motion === 'G00' || r.x == null) return;
+       if(mx == null || r.x > mx) mx = r.x;
+     });
+     if(mx == null) mx = maxXof(ctx);
+     if(mx == null) return [];
+     var hasBore = ctx.blocks.some(function(b){ return monotonic(contourX(ctx, b)) === -1; });
+     if(hasBore) return [];
+     if(mx < ctx.card.blankD * 0.55) return [{line:0, msg:'切削段最大的 X 只有 ' + fmtNum(mx) + '，而毛坯是 Φ' + fmtNum(ctx.card.blankD) + '，疑似把直径写成了半径'}];
+     return [];
+   }},
+  {code:'P05', lv:'S', group:'参数安全', title:'Z 向进入夹持区', needs:['clampLen'],
+   why:'刀具走到毛坯被卡盘夹住的那一段，会撞卡盘，工件、刀具、机床都可能损坏。',
+   fix:'缩短加工长度，或增加毛坯伸出长度（减小夹持长度）。',
+   check:function(ctx){
+     var z = minZof(ctx);
+     var usable = ctx.card.blankL - ctx.card.clampLen;
+     if(z == null) return [];
+     if(Math.abs(z) > usable + 0.5) return [{line:0, msg:'最深的 Z' + fmtNum(z) + ' 已超过可用长度 ' + fmtNum(round2(usable)) + 'mm'}];
+     return [];
+   }},
+  {code:'P06', lv:'I', group:'参数安全', title:'未开冷却', needs:[],
+   why:'粗车不开冷却，切屑容易缠刀、刀尖温度高。',
+   fix:'切削前加 M08。',
+   check:function(ctx){
+     var has = stmtsOf(ctx).some(function(r){ return r.words.some(function(w){ return w.a === 'M' && Math.round(w.num) === 8; }); });
+     return has ? [] : [{line:0, msg:'整张程序没有 M08'}];
+   }},
+  {code:'P07', lv:'W', group:'参数安全', title:'进给量明显异常', needs:['material'],
+   why:'进给远超材料能力会崩刃，过小则摩擦硬化、效率低。',
+   fix:'按材料推荐值取 f：粗车约 0.2~0.4mm/r，精车 0.08~0.15mm/r。',
+   check:function(ctx){
+     var m = materialOf(ctx.card.material), out = [];
+     var hi = m.fR * 4, lo = 0.02;
+     stmtsOf(ctx).forEach(function(r){
+       if(r.feed !== 'G99') return;
+       var f = addrOf(r, 'F');
+       if(f == null) return;
+       if(f > hi) out.push({line:r.ln, msg:'F' + fmtNum(f) + ' 超过 ' + m.name + ' 粗车上限 ' + fmtNum(round2(hi)) + 'mm/r'});
+       else if(f < lo) out.push({line:r.ln, msg:'F' + fmtNum(f) + ' 过小，近似空走'});
+     });
+     return out.slice(0, 2);
+   }},
+  {code:'P08', lv:'W', group:'参数安全', title:'粗车切深过大', needs:['material'],
+   why:'每刀切深超过刀片与机床能力时，会让刀、振动，尺寸与表面都差。',
+   fix:'把 G71 第一行的 U 降到材料推荐切深的 2 倍以内。',
+   check:function(ctx){
+     var m = materialOf(ctx.card.material), out = [];
+     blocksOf(ctx, 'G71').forEach(function(b){
+       if(b.u1 != null && b.u1 > m.apR * 2) out.push({line:b.startLn, msg:'每刀切深 ' + fmtNum(b.u1) + 'mm 超过 ' + m.name + ' 推荐 ' + fmtNum(m.apR) + 'mm 的两倍'});
+     });
+     return out;
+   }},
+
+  /* --- 尺寸 4 条 --- */
+  {code:'D01', lv:'W', group:'尺寸', title:'没有留精车余量', needs:[],
+   why:'粗车把轮廓切到尺寸，精车就无料可切，表面质量与尺寸精度都达不到。',
+   fix:'G71 第二行给 U0.3~0.5、W0.05~0.1。',
+   check:function(ctx){
+     var out = [];
+     blocksOf(ctx, 'G71').concat(blocksOf(ctx, 'G73')).forEach(function(b){
+       if((b.u2 === 0 || b.u2 == null) && (b.w2 === 0 || b.w2 == null)) out.push({line:b.specLn, msg:'U 与 W 都是 0，没有精车余量'});
+     });
+     return out;
+   }},
+  {code:'D02', lv:'E', group:'尺寸', title:'切断位置与零件长不符', needs:['partLen', 'tools'],
+   why:'切断位置决定零件长度，偏差超过刀宽就切成长短件。',
+   fix:'把切断的 Z 调到 -(零件长) 附近（按刀宽补偿）。',
+   check:function(ctx){
+     var partLen = ctx.card.partLen;
+     var blade = 3;
+     (ctx.card.tools || []).forEach(function(t){ if((t.type === '切断刀' || t.type === '切槽刀') && t.blade > 0) blade = t.blade; });
+     var out = [];
+     stmtsOf(ctx).forEach(function(r){
+       if(gSet(r).indexOf(75) < 0 || !hasAddr(r, 'X')) return;
+       if(r.x != null && r.x > 1) return;
+       if(r.z == null) return;
+       var diff = Math.abs(r.z) - partLen;
+       if(Math.abs(diff) > blade + 2) out.push({line:r.ln, msg:'切断在 Z' + fmtNum(r.z) + '，零件长却是 ' + fmtNum(partLen) + 'mm'});
+     });
+     return out;
+   }},
+  {code:'D03', lv:'W', group:'尺寸', title:'两次切槽位置重叠', needs:['tools'],
+   why:'相邻两次切槽的 Z 位移小于刀宽，第二次会切进前一次的槽里，槽宽做不准。',
+   fix:'让每次 Z 位移等于刀宽（扩槽时依次平移一刀宽）。',
+   check:function(ctx){
+     var blade = 3;
+     (ctx.card.tools || []).forEach(function(t){ if((t.type === '切槽刀' || t.type === '切断刀') && t.blade > 0) blade = t.blade; });
+     var grooves = stmtsOf(ctx).filter(function(r){ return gSet(r).indexOf(75) >= 0 && hasAddr(r, 'X') && r.z != null; });
+     var out = [];
+     for(var i = 1; i < grooves.length; i++){
+       var dz = Math.abs(grooves[i].z - grooves[i - 1].z);
+       if(dz > 0.01 && dz < blade * 0.8) out.push({line:grooves[i].ln, msg:'与上一次切槽只隔 ' + fmtNum(round2(dz)) + 'mm，小于刀宽 ' + fmtNum(blade) + 'mm'});
+     }
+     return out;
+   }},
+  {code:'D04', lv:'E', group:'尺寸', title:'倒角值大于相邻边长', needs:[],
+   why:'C 倒角是在相邻边上自动切出斜边，C 值超过该段长度时会把整段吃掉，轮廓变形。',
+   fix:'把 C 值改小，或加长该段。',
+   check:function(ctx){
+     var out = [];
+     stmtsOf(ctx).forEach(function(r){
+       var c = addrOf(r, 'C');
+       if(c == null) return;
+       var L = segLen(r);
+       if(L != null && c > L) out.push({line:r.ln, msg:'倒角 C' + fmtNum(c) + ' 大于该段长度 ' + fmtNum(round2(L)) + 'mm'});
+     });
+     return out;
+   }}
+];
+
+function needOk(field, card){
+  if(field === 'tools') return !!(card.tools && card.tools.length);
+  if(field === 'material') return !!materialOf(card.material);
+  var v = card[field];
+  return typeof v === 'number' && isFinite(v) && v > 0;
+}
+
+/* E6 评分：S 级直接不给分；E/W/I 分别扣分 */
+function scoreOf(issues){
+  var s = 100, hasS = false;
+  issues.forEach(function(i){
+    if(i.lv === 'S') hasS = true;
+    else if(i.lv === 'E') s -= 10;
+    else if(i.lv === 'W') s -= 4;
+  });
+  return hasS ? 0 : Math.max(0, s);
+}
+
+function lintProgram(text, card){
+  card = cardNormalize(card || CARD_DEFAULT);
+  var P = parseProgram(text);
+  walkRows(P);
+  var ctx = {P:P, rows:P.rows, blocks:P.blocks, card:card, issues:[], na:[]};
+  ctx.tool = function(tno){
+    var list = card.tools || [];
+    for(var i = 0; i < list.length; i++) if(list[i].t === tno) return list[i];
+    return null;
+  };
+  RULES.forEach(function(R){
+    var miss = (R.needs || []).filter(function(f){ return !needOk(f, card); });
+    if(miss.length){
+      ctx.na.push({code:R.code, lv:R.lv, group:R.group, title:R.title, missing:miss});
+      return;
+    }
+    var out = [];
+    try{ out = R.check(ctx) || []; }
+    catch(e){ out = [{line:0, msg:'规则执行异常：' + e.message}]; }
+    out.forEach(function(it){
+      ctx.issues.push({code:R.code, lv:R.lv, group:R.group, title:R.title, line:it.line || 0, msg:it.msg, why:R.why, fix:R.fix});
+    });
+  });
+  ctx.issues.sort(function(a, b){
+    var la = a.line || 1e9, lb = b.line || 1e9;
+    return la - lb;
+  });
+  return {
+    issues:ctx.issues, na:ctx.na, blocks:P.blocks, stats:P.stats,
+    score:scoreOf(ctx.issues),
+    counts:{
+      s:ctx.issues.filter(function(i){ return i.lv === 'S'; }).length,
+      e:ctx.issues.filter(function(i){ return i.lv === 'E'; }).length,
+      w:ctx.issues.filter(function(i){ return i.lv === 'W'; }).length,
+      i:ctx.issues.filter(function(i){ return i.lv === 'I'; }).length
+    },
+    judged:RULES.length - ctx.na.length,
+    total:RULES.length
+  };
+}
+
+/* ========== E3 刀轨引擎 ========== */
+/* 圆弧采样：用半径坐标（X/2）求圆心，再按角度插值；半径不足时退化为半圆 */
+function arcPoints(from, to, r, cw, steps){
+  var R = Math.abs(Number(r));
+  if(!(R > 0) || !from || !to) return null;
+  var x1 = from.x / 2, z1 = from.z, x2 = to.x / 2, z2 = to.z;
+  var dx = x2 - x1, dz = z2 - z1, d = Math.sqrt(dx * dx + dz * dz);
+  if(!(d > 1e-9)) return null;
+  if(d / 2 > R) R = d / 2;
+  var mx = (x1 + x2) / 2, mz = (z1 + z2) / 2;
+  var h = Math.sqrt(Math.max(0, R * R - (d / 2) * (d / 2)));
+  var ux = -dz / d, uz = dx / d;
+  var cands = [{x:mx + ux * h, z:mz + uz * h}, {x:mx - ux * h, z:mz - uz * h}];
+  function angles(c){
+    var a1 = Math.atan2(x1 - c.x, z1 - c.z), a2 = Math.atan2(x2 - c.x, z2 - c.z);
+    var da = a2 - a1;
+    while(da > Math.PI) da -= 2 * Math.PI;
+    while(da < -Math.PI) da += 2 * Math.PI;
+    return {a1:a1, da:da};
+  }
+  var pick = null;
+  for(var i = 0; i < cands.length; i++){
+    var an = angles(cands[i]);
+    /* G02 顺时针在 ZX 图上对应角度递减 */
+    if(cw ? an.da < 0 : an.da > 0){ pick = {c:cands[i], a1:an.a1, da:an.da}; break; }
+  }
+  if(!pick){ var an2 = angles(cands[0]); pick = {c:cands[0], a1:an2.a1, da:an2.da}; }
+  var n = Math.max(6, Math.min(64, steps || 16));
+  var pts = [];
+  for(var k = 1; k <= n; k++){
+    var a = pick.a1 + pick.da * k / n;
+    /* a 由 atan2(Δx, Δz) 得到，因此 sin 对应 x、cos 对应 z */
+    pts.push({x:(pick.c.x + R * Math.sin(a)) * 2, z:pick.c.z + R * Math.cos(a)});
+  }
+  return {pts:pts, center:{x:pick.c.x * 2, z:pick.c.z}, sweep:pick.da, radius:R};
+}
+
+/* 端面残留：不修整刀尖半径时，刀尖圆弧会在中心留下约一个 R 的凸台 */
+function noseResidual(r){ var v = Number(r); return (v > 0) ? round2(v) : 0; }
+
+/* 程序 -> 轨迹段。车削是开放路径，只按程序顺序连线，不做轮廓闭包判断。 */
+function buildPath(P, card){
+  card = cardNormalize(card || CARD_DEFAULT);
+  var segs = [], prev = null;
+  P.rows.forEach(function(r){
+    if(r.kind !== 'stmt') return;
+    if(!hasAddr(r, 'X') && !hasAddr(r, 'Z') && !hasAddr(r, 'U') && !hasAddr(r, 'W')) return;
+    if(r.x == null || r.z == null) return;
+    var pt = {x:r.x, z:r.z};
+    if(!prev){ prev = pt; return; }
+    if(Math.abs(pt.x - prev.x) < 1e-9 && Math.abs(pt.z - prev.z) < 1e-9) return;
+    var arc = r.motion === 'G02' || r.motion === 'G03';
+    var gs = gSet(r);
+    var seg = {
+      from:{x:prev.x, z:prev.z}, to:pt,
+      type:r.motion === 'G00' ? 'rapid' : (arc ? 'arc' : 'cut'),
+      ln:r.ln, code:r.code, cw:(r.motion === 'G02'), radius:addrOf(r, 'R'),
+      contour:r.inBlock || null, thread:!!r.threadMode, groove:gs.indexOf(75) >= 0
+    };
+    if(arc && seg.radius){
+      var ap = arcPoints(seg.from, seg.to, seg.radius, seg.cw, 24);
+      if(ap){ seg.pts = ap.pts; seg.center = ap.center; }
+    }
+    segs.push(seg);
+    prev = pt;
+  });
+  var maxX = 0, cutMaxX = 0, minZ = 0;
+  segs.forEach(function(sg){
+    if(sg.from.x > maxX) maxX = sg.from.x;
+    if(sg.to.x > maxX) maxX = sg.to.x;
+    if(sg.type !== 'rapid'){
+      if(sg.from.x > cutMaxX) cutMaxX = sg.from.x;
+      if(sg.to.x > cutMaxX) cutMaxX = sg.to.x;
+    }
+    if(sg.from.z < minZ) minZ = sg.from.z;
+    if(sg.to.z < minZ) minZ = sg.to.z;
+  });
+  return {
+    segs:segs, card:card, maxX:maxX, cutMaxX:cutMaxX, minZ:minZ,
+    counts:{
+      rapid:segs.filter(function(x){ return x.type === 'rapid'; }).length,
+      cut:segs.filter(function(x){ return x.type === 'cut'; }).length,
+      arc:segs.filter(function(x){ return x.type === 'arc'; }).length
+    }
+  };
+}
+
+var pathState = {model:null, step:0, scale:'dia', nose:false};
+
+function drawPath(cv, model, step, scaleMode, showNose){
+  var dpr = window.devicePixelRatio || 1;
+  var w = cv.clientWidth || 800, h = 360;
+  if(cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)){
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  }
+  var g = cv.getContext ? cv.getContext('2d') : null;
+  if(!g) return;
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, w, h);
+
+  var L = 64, Rm = 16, T = 34, B = 34;
+  var zMin = Math.min(model.minZ, -model.card.blankL) - 2;
+  var zMax = 8;
+  /* 刻度按切削段定，退刀点（如 X100）不参与，否则轮廓被压扁 */
+  var xMax = Math.max(model.cutMaxX || 0, model.card.blankD) * 1.08 || 10;
+  var pw = Math.max(20, w - L - Rm), ph = Math.max(20, h - T - B);
+  function sx(z){ return L + (z - zMin) / (zMax - zMin) * pw; }
+  function sy(x){ return T + (1 - x / xMax) * ph; }
+
+  g.strokeStyle = '#c9ccd6'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(L, sy(0)); g.lineTo(L + pw, sy(0)); g.stroke();
+
+  var b = model.card;
+  var bx0 = sx(-b.blankL), bx1 = sx(0);
+  g.fillStyle = '#f1f2f6';
+  g.fillRect(bx0, sy(b.blankD), bx1 - bx0, sy(0) - sy(b.blankD));
+  g.strokeStyle = '#d7dae3';
+  g.strokeRect(bx0, sy(b.blankD), bx1 - bx0, sy(0) - sy(b.blankD));
+
+  g.save();
+  g.beginPath();
+  g.rect(L, T - 6, pw, ph + 12);
+  g.clip();
+  for(var i = 0; i < step && i < model.segs.length; i++){
+    var sg = model.segs[i], cur = (i === step - 1);
+    g.beginPath();
+    g.setLineDash(sg.type === 'rapid' ? [4, 4] : []);
+    g.lineWidth = cur ? 2.6 : 1.4;
+    g.strokeStyle = cur ? '#db2777' : (sg.contour ? '#0f766e' : (sg.type === 'rapid' ? '#9aa0b4' : '#4f46e5'));
+    if(sg.pts && sg.pts.length){
+      g.moveTo(sx(sg.from.z), sy(sg.from.x));
+      for(var k = 0; k < sg.pts.length; k++) g.lineTo(sx(sg.pts[k].z), sy(sg.pts[k].x));
+    }else{
+      g.moveTo(sx(sg.from.z), sy(sg.from.x));
+      g.lineTo(sx(sg.to.z), sy(sg.to.x));
+    }
+    g.stroke();
+    g.setLineDash([]);
+    if(cur){
+      g.beginPath();
+      g.arc(sx(sg.to.z), sy(sg.to.x), 3, 0, Math.PI * 2);
+      g.fillStyle = '#db2777'; g.fill();
+    }
+  }
+  g.restore();
+
+  /* 刀尖半径示意：在终点画刀尖圆弧，端面段标残留 */
+  if(showNose){
+    var noseR = 0.4;
+    (model.card.tools || []).forEach(function(t){ if(t.type === '外圆刀') noseR = t.r; });
+    var lastSg = step > 0 ? model.segs[step - 1] : null;
+    if(lastSg){
+      var cx = sx(lastSg.to.z), cy = sy(lastSg.to.x);
+      var rr = Math.max(2, Math.abs(sy(lastSg.to.x - noseR * 2) - cy));
+      g.beginPath(); g.arc(cx, cy, rr, 0, Math.PI * 2);
+      g.fillStyle = 'rgba(219,39,119,.12)';
+      g.strokeStyle = '#db2777'; g.lineWidth = 1.2;
+      g.fill(); g.stroke();
+      g.fillStyle = '#db2777';
+      g.textAlign = 'left';
+      g.fillText('刀尖 R' + noseR, cx + rr + 4, cy - rr - 2);
+    }
+  }
+
+  g.font = '11px system-ui, -apple-system, "Microsoft YaHei", sans-serif';
+  g.fillStyle = '#5c6070';
+  var ticks = [0, xMax / 2, xMax];
+  g.textAlign = 'right';
+  ticks.forEach(function(v){
+    var lab = scaleMode === 'rad' ? 'R' + fmtNum(Math.round(v / 2 * 10) / 10) : 'Φ' + fmtNum(Math.round(v * 10) / 10);
+    g.fillText(lab, L - 8, sy(v) + 4);
+  });
+  g.textAlign = 'center';
+  var zTicks = [0], zt = -20;
+  while(zt > zMin + 4){ zTicks.push(zt); zt -= 20; }
+  zTicks.forEach(function(v){ g.fillText(fmtNum(v), sx(v), h - 14); });
+  g.textAlign = 'left';
+  g.fillText(scaleMode === 'rad' ? 'X（半径 R）' : 'X（直径 Φ）', 6, 14);
+  g.textAlign = 'right';
+  g.fillText('Z（右端为 0）· 圆弧按弦线示意', L + pw, 14);
+}
+
+function setPathStep(n){
+  var max = pathState.model ? pathState.model.segs.length : 0;
+  pathState.step = Math.max(0, Math.min(max, n));
+  var sl = document.getElementById('path-step');
+  if(sl) sl.value = pathState.step;
+  redrawPath();
+}
+
+function renderPathCode(){
+  var tb = document.getElementById('path-code');
+  if(!tb || !pathState.model) return;
+  tb.innerHTML = pathState.model.segs.map(function(s, i){
+    var label = s.type === 'rapid' ? '快速' : (s.type === 'arc' ? '圆弧' : '切削');
+    if(s.groove) label = '切槽';
+    else if(s.thread) label = '螺纹';
+    else if(s.contour) label = '轮廓';
+    return '<tr data-i="' + i + '"><td>' + s.ln + '</td><td class="mono">' + esc(s.code) + '</td><td>' + label + '</td></tr>';
+  }).join('');
+  tb.onclick = function(e){
+    var tr = e.target.closest ? e.target.closest('tr') : null;
+    if(!tr) return;
+    setPathStep(Number(tr.getAttribute('data-i')) + 1);
+  };
+}
+
+function redrawPath(){
+  var cv = document.getElementById('path-canvas');
+  if(!cv || !pathState.model) return;
+  drawPath(cv, pathState.model, pathState.step, pathState.scale, pathState.nose);
+  var m = pathState.model;
+  var cur = pathState.step > 0 ? m.segs[pathState.step - 1] : null;
+  var st = document.getElementById('path-stat');
+  if(st){
+    st.textContent = '共 ' + m.segs.length + ' 段（切削 ' + m.counts.cut + ' · 圆弧 ' + m.counts.arc + ' · 快速 ' + m.counts.rapid +
+      '）· 切削最大直径 Φ' + fmtNum(round2(m.cutMaxX)) + ' · 最深 Z' + fmtNum(round2(m.minZ)) +
+      (cur ? ' · 当前第 ' + cur.ln + ' 行' : '');
+  }
+  var rows = document.querySelectorAll('#path-code tr');
+  for(var i = 0; i < rows.length; i++) rows[i].className = (i === pathState.step - 1) ? 'cur' : '';
+}
+
+function loadPath(text){
+  var P = parseProgram(text);
+  walkRows(P);
+  pathState.model = buildPath(P, state.card);
+  pathState.step = pathState.model.segs.length;
+  var sl = document.getElementById('path-step');
+  if(sl){ sl.max = pathState.model.segs.length; sl.value = pathState.step; }
+  renderPathCode();
+  redrawPath();
+}
+
+function initPath(){
+  var cv = document.getElementById('path-canvas');
+  if(!cv) return;
+  document.getElementById('path-scale').addEventListener('change', function(e){
+    pathState.scale = e.target.value;
+    redrawPath();
+  });
+  document.getElementById('path-step').addEventListener('input', function(e){
+    pathState.step = Number(e.target.value);
+    redrawPath();
+  });
+  document.getElementById('path-nose').addEventListener('change', function(e){
+    pathState.nose = e.target.checked;
+    redrawPath();
+  });
+  document.getElementById('path-prev').addEventListener('click', function(){ setPathStep(pathState.step - 1); });
+  document.getElementById('path-next').addEventListener('click', function(){ setPathStep(pathState.step + 1); });
+  document.getElementById('path-from-editor').addEventListener('click', function(){
+    var ta = document.getElementById('prog');
+    if(ta) loadPath(ta.value);
+  });
+  window.addEventListener('resize', function(){ redrawPath(); });
+  loadPath(progGet() || TEMPLATES[3].code);
+}
+
+/* ========== 工艺模板与快捷片段 ========== */
+var TEMPLATES = [
+  {id:'skeleton', name:'1 程序骨架（精车外圆）', code:[
+    'O0001;',
+    'G21 G99 G40;',
+    'T0101;',
+    'G50 S2000;',
+    'G97 S800 M03;',
+    'G00 X52 Z2;',
+    'M08;',
+    'G01 Z0 F0.15;',
+    'G01 X-1 F0.1;',
+    'G00 Z2;',
+    'G00 X100 Z100;',
+    'M09;',
+    'M05;',
+    'M30;'
+  ].join('\n')},
+  {id:'face', name:'2 车端面（G96 恒线速）', code:[
+    'O0002;',
+    'G21 G99 G40;',
+    'T0101;',
+    'G50 S1800;',
+    'G96 S150 M03;',
+    'G00 X52 Z2;',
+    'M08;',
+    'G01 Z0 F0.15;',
+    'G01 X-1 F0.08;',
+    'G00 Z2;',
+    'G00 X100 Z100;',
+    'M09;',
+    'M30;'
+  ].join('\n')},
+  {id:'g90', name:'3 G90 单一循环车台阶', code:[
+    'O0003;',
+    'G21 G99 G40;',
+    'T0101;',
+    'G97 S800 M03;',
+    'G00 X52 Z2;',
+    'G90 X46 Z-30 F0.25;',
+    'X42;',
+    'X38;',
+    'X35;',
+    'G00 X100 Z100;',
+    'M05;',
+    'M30;'
+  ].join('\n')},
+  {id:'g71', name:'4 外圆粗车 G71 + 精车 G70（含倒角）', code:[
+    'O0004;',
+    'G21 G99 G40;',
+    'T0101;',
+    'G50 S1800;',
+    'G96 S150 M03;',
+    'G00 X52 Z2;',
+    'G71 U2 R1;',
+    'G71 P10 Q20 U0.5 W0.1 F0.25;',
+    'N10 G00 X26;',
+    'G01 Z0 F0.1;',
+    'X30 Z-2;',
+    'Z-30;',
+    'X40;',
+    'Z-45;',
+    'X50;',
+    'N20 X52;',
+    'G70 P10 Q20 F0.08;',
+    'G00 X100 Z100;',
+    'M05;',
+    'M30;'
+  ].join('\n')},
+  {id:'g73', name:'5 仿形粗车 G73', code:[
+    'O0005;',
+    'G21 G99 G40;',
+    'T0101;',
+    'G50 S1500;',
+    'G96 S140 M03;',
+    'G00 X52 Z2;',
+    'G73 U6 W0 R4;',
+    'G73 P10 Q20 U0.4 W0.1 F0.2;',
+    'N10 G00 X30;',
+    'G01 Z0 F0.1;',
+    'X40 Z-10;',
+    'Z-35;',
+    'X50;',
+    'N20 X52;',
+    'G70 P10 Q20;',
+    'G00 X100 Z100;',
+    'M05;',
+    'M30;'
+  ].join('\n')},
+  {id:'groove', name:'6 切槽 G75 + 切断', code:[
+    'O0006;',
+    'G21 G99 G40;',
+    'T0303;',
+    'G97 S500 M03;',
+    'G00 X52 Z-30;',
+    'G75 R0.5;',
+    'G75 X40 P2000 F0.08;',
+    'G00 X52;',
+    'G00 Z-63;',
+    'G75 R0.5;',
+    'G75 X0 P2000 F0.06;',
+    'G00 X100 Z100;',
+    'M05;',
+    'M30;'
+  ].join('\n')},
+  {id:'g92', name:'7 三角螺纹 G92（分层）', code:[
+    'O0007;',
+    'G21 G99 G40;',
+    'T0404;',
+    'G97 S600 M03;',
+    'G00 X32 Z4;',
+    'G92 X28 Z-28 F3.5;',
+    'X26.8;',
+    'X26.1;',
+    'X25.6;',
+    'X25.45;',
+    'G00 X100 Z100;',
+    'M05;',
+    'M30;'
+  ].join('\n')},
+  {id:'g76', name:'8 三角螺纹 G76（复合循环）', code:[
+    'O0008;',
+    'G21 G99 G40;',
+    'T0404;',
+    'G97 S600 M03;',
+    'G00 X32 Z4;',
+    'G76 P021060 Q100 R0.05;',
+    'G76 X25.45 Z-28 P2273 Q400 F3.5;',
+    'G00 X100 Z100;',
+    'M05;',
+    'M30;'
+  ].join('\n')},
+  {id:'bore', name:'9 内孔车削（G71 U 取负）', code:[
+    'O0009;',
+    'G21 G99 G40;',
+    'T0202;',
+    'G50 S1500;',
+    'G96 S120 M03;',
+    'G00 X18 Z2;',
+    'G71 U1.5 R0.5;',
+    'G71 P10 Q20 U-0.4 W0.1 F0.2;',
+    'N10 G00 X24;',
+    'G01 Z0 F0.1;',
+    'X22 Z-1;',
+    'Z-25;',
+    'N20 X18;',
+    'G70 P10 Q20;',
+    'G00 X100 Z100;',
+    'M05;',
+    'M30;'
+  ].join('\n')},
+  {id:'mixed', name:'10 综合件（外圆 + 槽 + 螺纹）', code:[
+    'O0010;',
+    'G21 G99 G40;',
+    'T0101;',
+    'G50 S1800;',
+    'G96 S150 M03;',
+    'G00 X52 Z2;',
+    'G71 U2 R1;',
+    'G71 P10 Q20 U0.5 W0.1 F0.25;',
+    'N10 G00 X26;',
+    'G01 Z0 F0.1;',
+    'X30 Z-2;',
+    'Z-20;',
+    'X40;',
+    'Z-40;',
+    'X50;',
+    'N20 X52;',
+    'G70 P10 Q20 F0.08;',
+    'G00 X100 Z100;',
+    'T0303;',
+    'G97 S500 M03;',
+    'G00 X32 Z-20;',
+    'G75 R0.5;',
+    'G75 X24 P1500 F0.06;',
+    'G00 X52;',
+    'T0404;',
+    'G97 S600 M03;',
+    'G00 X32 Z-2;',
+    'G76 P021060 Q100 R0.05;',
+    'G76 X25.45 Z-18 P2273 Q400 F3.5;',
+    'G00 X100 Z100;',
+    'M05;',
+    'M30;'
+  ].join('\n')}
+];
+
+var SNIPPETS = [
+  {name:'程序头', code:['G21 G99 G40;', 'T0101;', 'G50 S2000;'].join('\n')},
+  {name:'G71 两行', code:['G71 U2 R1;', 'G71 P10 Q20 U0.5 W0.1 F0.25;'].join('\n')},
+  {name:'G72 两行', code:['G72 W2 R1;', 'G72 P10 Q20 U0.5 W2 F0.25;'].join('\n')},
+  {name:'G73 两行', code:['G73 U6 W0 R4;', 'G73 P10 Q20 U0.4 W0.1 F0.2;'].join('\n')},
+  {name:'G70 精车', code:'G70 P10 Q20 F0.08;'},
+  {name:'G75 切槽', code:['G75 R0.5;', 'G75 X40 P2000 F0.08;'].join('\n')},
+  {name:'G76 两行', code:['G76 P021060 Q100 R0.05;', 'G76 X25.45 Z-28 P2273 Q400 F3.5;'].join('\n')},
+  {name:'G92 螺纹', code:['G92 X29.2 Z-28 F1.5;', 'X28.8;', 'X28.5;', 'X28.2;', 'X28.05;'].join('\n')},
+  {name:'倒角 C', code:'X30 Z-2;'},
+  {name:'倒圆 R', code:'X30 Z-2 R2;'},
+  {name:'恒线速', code:['G50 S1800;', 'G96 S150 M03;'].join('\n')},
+  {name:'车端面', code:['G00 X52 Z2;', 'G01 Z0 F0.15;', 'G01 X-1 F0.08;'].join('\n')},
+  {name:'切断', code:['G00 Z-63;', 'G75 R0.5;', 'G75 X0 P2000 F0.06;'].join('\n')},
+  {name:'程序尾', code:['G00 X100 Z100;', 'M09;', 'M05;', 'M30;'].join('\n')}
+];
+
+/* ========== 参数计算（纯函数） ========== */
+function calcParams(o){
+  o = o || {};
+  var m = materialOf(o.matKey) || MATERIALS[0];
+  var rough = o.op !== 'finish';
+  var d = Number(o.d);
+  var vc = rough ? m.vcR : m.vcF;
+  var f = rough ? m.fR : m.fF;
+  var ap = rough ? m.apR : m.apF;
+  var rpmMax = Number(o.rpmMax) || 0;
+  var rpmRaw = calcRpm(vc, d);
+  var rpm = clampRpm(rpmRaw, rpmMax);
+  var limited = rpmMax > 0 && isFinite(rpmRaw) && rpmRaw > rpmMax + 1e-9;
+  var vcActual = limited ? (Math.PI * d * rpm / 1000) : vc;
+  return {
+    matName:m.name, op:(rough ? 'rough' : 'finish'), vc:vc, f:f, ap:ap,
+    rpmRaw:rpmRaw, rpm:rpm, limited:limited, vcActual:vcActual,
+    fmm:(isFinite(rpm) ? f * rpm : NaN), mode:(o.mode === 'G96' ? 'G96' : 'G97')
+  };
+}
+
+/* 螺距越大分刀越多：≤1.25 用 4 刀，≤2.5 用 5 刀，其余 6 刀 */
+function pickPassCount(p){
+  if(!(p > 0)) return 5;
+  if(p <= 1.25) return 4;
+  if(p <= 2.5) return 5;
+  return 6;
+}
+
+/* 切槽扩槽：刀宽 w 的刀切宽 B 的槽，要几刀、每刀 Z 位移多少 */
+function groovePasses(B, w){
+  B = Number(B); w = Number(w);
+  if(!(B > 0) || !(w > 0)) return null;
+  if(w > B) return {count:0, steps:[], blade:w, groove:B, rest:B, over:true};
+  var n = Math.ceil(B / w);
+  var steps = [], rest = B;
+  for(var i = 0; i < n; i++){
+    var cut = Math.min(w, round2(rest));
+    if(cut <= 0.005) break;
+    steps.push({no:steps.length + 1, width:round2(cut), z:round2(-i * w)});
+    rest = round2(rest - cut);
+  }
+  return {count:steps.length, steps:steps, blade:w, groove:B, rest:rest, over:false};
+}
+
+/* ========== 面板：编辑器 / 参数 / 解释 ========== */
+var LSK_PROG = 'turnAid.program.v1';
+
+function progGet(){
+  try{ return localStorage.getItem(LSK_PROG) || ''; }catch(e){ return ''; }
+}
+function progSet(v){
+  try{ localStorage.setItem(LSK_PROG, v); return true; }catch(e){ return false; }
+}
+
+function initEditor(){
+  var sel = document.getElementById('tpl-sel');
+  var ta = document.getElementById('prog');
+  var stat = document.getElementById('ed-stat');
+  if(!sel || !ta) return;
+
+  sel.innerHTML = TEMPLATES.map(function(t){
+    return '<option value="' + esc(t.id) + '">' + esc(t.name) + '</option>';
+  }).join('');
+
+  document.getElementById('snips').innerHTML = SNIPPETS.map(function(s, i){
+    return '<button type="button" data-snip="' + i + '">' + esc(s.name) + '</button>';
+  }).join('');
+
+  ta.value = progGet() || TEMPLATES[3].code;
+  var autoMatch = TEMPLATES.filter(function(x){ return x.code === ta.value; })[0];
+  sel.value = autoMatch ? autoMatch.id : TEMPLATES[3].id;
+
+  function refreshStat(){
+    var P = parseProgram(ta.value);
+    stat.textContent = P.stats.stmt + ' 段 · ' + P.stats.blocks + ' 个循环块 · ' + (P.stats.unknownG ? P.stats.unknownG + ' 个未收录 G' : '指令全部已收录');
+  }
+  var timer = null;
+  ta.addEventListener('input', function(){
+    refreshStat();
+    clearTimeout(timer);
+    timer = setTimeout(function(){ progSet(ta.value); }, 300);
+  });
+  refreshStat();
+
+  document.getElementById('tpl-load').addEventListener('click', function(){
+    var t = TEMPLATES.filter(function(x){ return x.id === sel.value; })[0];
+    if(!t) return;
+    ta.value = t.code;
+    progSet(ta.value);
+    refreshStat();
+  });
+
+  document.getElementById('snips').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-snip]');
+    if(!b) return;
+    var s = SNIPPETS[Number(b.getAttribute('data-snip'))];
+    if(!s) return;
+    var at = ta.selectionStart == null ? ta.value.length : ta.selectionStart;
+    var before = ta.value.slice(0, at), after = ta.value.slice(at);
+    var pad = (before && !/\n$/.test(before) ? '\n' : '') + s.code + '\n';
+    ta.value = before + pad + after;
+    var pos = (before + pad).length;
+    ta.focus();
+    ta.setSelectionRange(pos, pos);
+    progSet(ta.value);
+    refreshStat();
+  });
+
+  document.getElementById('ed-clear').addEventListener('click', function(){
+    ta.value = '';
+    progSet('');
+    refreshStat();
+    ta.focus();
+  });
+  document.getElementById('ed-copy').addEventListener('click', function(){
+    ta.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    ta.setSelectionRange(0, 0);
+  });
+  document.getElementById('ed-explain').addEventListener('click', function(){
+    var ex = document.getElementById('ex-input');
+    if(ex){
+      ex.value = ta.value;
+      runExplain();
+      switchPanel('explain');
+    }
+  });
+}
+
+function switchPanel(id){
+  var nav = document.getElementById('nav');
+  Array.prototype.forEach.call(nav.querySelectorAll('button'), function(x){
+    if(x.getAttribute('data-p') === id) x.setAttribute('aria-current', 'page'); else x.removeAttribute('aria-current');
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.panel'), function(p){
+    p.classList.toggle('active', p.id === 'panel-' + id);
+  });
+}
+
+function statBox(label, value, note, cls){
+  return '<div class="stat ' + (cls || '') + '"><b>' + esc(label) + '</b><span>' + esc(value) + '</span>' +
+    (note ? '<small>' + esc(note) + '</small>' : '') + '</div>';
+}
+
+function runParams(){
+  var out = document.getElementById('p-out');
+  if(!out) return;
+  var d = Number(document.getElementById('p-d').value);
+  var matKey = document.getElementById('p-mat').value;
+  var op = document.getElementById('p-op').value;
+  var mode = document.getElementById('p-mode').value;
+  var smax = Number(document.getElementById('p-smax').value);
+  var r = calcParams({matKey:matKey, d:d, op:op, mode:mode, rpmMax:smax});
+  var hint = document.getElementById('p-hint');
+
+  var html = '';
+  html += statBox('切削线速度 vc', fmtNum(r.vc) + ' m/min', r.matName + ' · ' + (r.op === 'rough' ? '粗车' : '精车'), 'hi');
+  html += statBox('主轴转速 n', isFinite(r.rpm) ? Math.round(r.rpm) + ' r/min' : '—',
+    r.limited ? '原算 ' + Math.round(r.rpmRaw) + '，已按 G50 S' + smax + ' 压到上限' : 'n = 1000·vc / (π·D)',
+    r.limited ? 'warn' : '');
+  html += statBox('实际线速度', fmtNum(r.vcActual) + ' m/min',
+    r.limited ? '限速后真实切削线速度会降下来' : '未被限速，等于设定值');
+  html += statBox('每转进给 f', fmtNum(r.f) + ' mm/r',
+    'G99 口径' + (isFinite(r.fmm) ? ' · 合 ' + Math.round(r.fmm) + ' mm/min' : ''), '');
+  html += statBox('切深 ap', fmtNum(r.ap) + ' mm', '半径值，单边', '');
+  out.innerHTML = html;
+
+  var lines = [];
+  if(mode === 'G96'){
+    lines.push('G50 S' + (smax || 2000) + ';');
+    lines.push('G96 S' + Math.round(r.vc) + ' M03;');
+  } else {
+    lines.push('G97 S' + (isFinite(r.rpm) ? Math.round(r.rpm) : 800) + ' M03;');
+  }
+  var msg = '建议程序行：' + lines.join(' ');
+  if(mode === 'G96' && !(smax > 0)) msg += '　⚠ 恒线速必须配 G50 限速，否则小直径处会超速。';
+  if(mode === 'G96' && r.limited) msg += '　⚠ 当前直径下已触及限速，实际线速度降为 ' + fmtNum(r.vcActual) + ' m/min。';
+  hint.textContent = msg;
+}
+
+function runThread(){
+  var out = document.getElementById('t-out');
+  var tb = document.getElementById('t-passes');
+  if(!out) return;
+  var d = state.card.threadD, p = state.card.threadP;
+  var b = threadBasic(d, p);
+  var n = pickPassCount(p);
+  var passes = threadPasses(b.hExp, n);
+
+  out.innerHTML =
+    statBox('公称直径 d', fmtNum(d) + ' mm', 'M' + fmtNum(d) + '×' + fmtNum(p), 'hi') +
+    statBox('牙深 h（经验）', fmtNum(b.hExp) + ' mm', '0.6495P · 分 ' + n + ' 刀', '') +
+    statBox('小径 d1（经验）', fmtNum(b.d1exp) + ' mm', 'd − 1.3P，车到此处', 'hi') +
+    statBox('小径 d1（标准）', fmtNum(b.d1std) + ' mm', 'd − 1.0825P，GB/T 192 基本牙型', '') +
+    statBox('中径 d2', fmtNum(b.d2) + ' mm', 'd − 0.6495P', '');
+
+  tb.innerHTML = passes.map(function(x){
+    return '<tr><td>' + x.no + '</td><td>' + fmtNum(x.ap) + ' mm</td><td>' + fmtNum(x.acc) +
+      ' mm</td><td>' + fmtNum(round2(b.hExp - x.acc)) + ' mm</td></tr>';
+  }).join('');
+}
+
+function runGroove(){
+  var out = document.getElementById('g-out');
+  var hint = document.getElementById('g-hint');
+  if(!out) return;
+  var B = Number(document.getElementById('g-b').value);
+  var w = Number(document.getElementById('g-w').value);
+  var g = groovePasses(B, w);
+  if(!g || g.over){
+    out.innerHTML = statBox('无法加工', '刀宽大于槽宽', '换窄刀，或确认槽宽是否写错', 'warn');
+    hint.textContent = '';
+    return;
+  }
+  out.innerHTML =
+    statBox('槽宽 / 刀宽', fmtNum(B) + ' / ' + fmtNum(w) + ' mm', '', '') +
+    statBox('切槽次数', g.count + ' 刀', '每刀 Z 向移动 ' + fmtNum(w) + 'mm', 'hi') +
+    statBox('最后一刀宽度', fmtNum(g.steps[g.steps.length - 1].width) + ' mm', '按剩余量走，不再满刀宽', '') +
+    statBox('残料', fmtNum(g.rest) + ' mm', g.rest > 0.005 ? '需再补一刀清根' : '刚好切净', g.rest > 0.005 ? 'warn' : '');
+  hint.textContent = 'Z 向位移依次为：' + g.steps.map(function(s){ return fmtNum(s.z); }).join('、') + ' mm（首刀在槽的一侧，逐次向另一侧扩大）。';
+}
+
+function runExplain(){
+  var ta = document.getElementById('ex-input');
+  var out = document.getElementById('ex-out');
+  var stat = document.getElementById('ex-stat');
+  if(!ta || !out) return;
+  var R = explainProgram(ta.value);
+  out.innerHTML = R.rows.map(function(r){
+    var cls = r.kind === 'block' ? 'block' : (r.kind === 'body-in' ? 'body-in' : (r.kind === 'blank' ? 'blank' : ''));
+    return '<div class="ex-row ' + cls + '">' +
+      '<div class="ex-no">' + r.ln + '</div>' +
+      '<div class="ex-body"><code>' + esc(r.raw.trim() || ' ') + '</code>' + esc(r.text) + '</div>' +
+    '</div>';
+  }).join('');
+  stat.textContent = R.stats.stmt + ' 段 · ' + R.stats.blocks + ' 个循环块 · ' + R.stats.folded + ' 行轮廓被折叠' +
+    (R.stats.unknownG ? ' · ' + R.stats.unknownG + ' 个未收录 G' : '');
+}
+
+function initParams(){
+  var ms = document.getElementById('p-mat');
+  if(!ms) return;
+  ms.innerHTML = MATERIALS.map(function(m){
+    return '<option value="' + esc(m.k) + '">' + esc(m.name) + '</option>';
+  }).join('');
+  ms.value = state.card.material;
+  document.getElementById('p-d').value = state.card.blankD;
+  ['p-d', 'p-mat', 'p-op', 'p-mode', 'p-smax'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el){ el.addEventListener('input', runParams); el.addEventListener('change', runParams); }
+  });
+  ['g-b', 'g-w'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.addEventListener('input', runGroove);
+  });
+  runParams();
+  runThread();
+  runGroove();
+}
+
+function initExplain(){
+  var ta = document.getElementById('ex-input');
+  if(!ta) return;
+  ta.value = progGet() || TEMPLATES[3].code;
+  document.getElementById('ex-run').addEventListener('click', runExplain);
+  document.getElementById('ex-from-editor').addEventListener('click', function(){
+    ta.value = document.getElementById('prog').value;
+    runExplain();
+  });
+  runExplain();
+}
+
+var LVN = {S:'阻断', E:'错误', W:'警告', I:'提示'};
+
+function initLint(){
+  var ta = document.getElementById('lint-input');
+  if(!ta) return;
+  ta.value = progGet() || TEMPLATES[3].code;
+  document.getElementById('lint-run').addEventListener('click', runLint);
+  document.getElementById('lint-from-editor').addEventListener('click', function(){
+    ta.value = document.getElementById('prog').value;
+    runLint();
+  });
+  runLint();
+}
+
+function runLint(){
+  var ta = document.getElementById('lint-input');
+  var out = document.getElementById('lint-out');
+  var sum = document.getElementById('lint-sum');
+  var naBox = document.getElementById('lint-na');
+  var stat = document.getElementById('lint-stat');
+  if(!ta || !out) return;
+
+  var R = lintProgram(ta.value, state.card);
+
+  stat.textContent = '已判定 ' + R.judged + '/' + R.total + ' 条规则' +
+    (R.na.length ? ' · ' + R.na.length + ' 条未判定' : '');
+
+  sum.innerHTML =
+    statBox('得分', R.score + ' 分', R.counts.s ? 'S 级阻断，不给分' : 'S 阻断 / E −10 / W −4 / I 不计分', R.counts.s ? 'warn' : 'hi') +
+    statBox('阻断 S', R.counts.s + ' 条', '会撞刀或直接报废', R.counts.s ? 'warn' : '') +
+    statBox('错误 E', R.counts.e + ' 条', '跑不到预期结果', '') +
+    statBox('警告 W', R.counts.w + ' 条', '隐患，建议改', '') +
+    statBox('提示 I', R.counts.i + ' 条', '教学提示，不扣分', '');
+
+  if(!R.issues.length){
+    out.innerHTML = '<div class="lint-none">未发现问题。' +
+      (R.na.length ? '注意：还有 ' + R.na.length + ' 条规则因缺工件卡数据未判定。' : '') + '</div>';
+  } else {
+    out.innerHTML = R.issues.map(function(it){
+      return '<div class="lint-item">' +
+        '<div class="top">' +
+          '<span class="lv ' + it.lv + '">' + LVN[it.lv] + '</span>' +
+          '<span class="lint-code">' + esc(it.code) + '</span>' +
+          '<span class="lint-line">' + (it.line ? '第 ' + it.line + ' 行' : '整体') + '</span>' +
+          '<span class="lint-msg">' + esc(it.msg) + '</span>' +
+        '</div>' +
+        '<div class="lint-why">为什么：' + esc(it.why) + '</div>' +
+        '<div class="lint-fix">怎么改：' + esc(it.fix) + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  if(R.na.length){
+    var byField = {};
+    R.na.forEach(function(n){ n.missing.forEach(function(f){ (byField[f] = byField[f] || []).push(n.code); }); });
+    var labels = {blankD:'毛坯直径', blankL:'毛坯长度', clampLen:'夹持长度', partLen:'零件长度', threadP:'螺距', material:'材料', tools:'刀具表'};
+    var lines = Object.keys(byField).map(function(f){
+      return '<b>' + esc(labels[f] || f) + '</b>：影响 ' + byField[f].join('、') + ' 的判定';
+    });
+    naBox.innerHTML = '<div class="lint-na"><b>未判定 ' + R.na.length + ' 条</b>——缺工件卡数据，这些规则没有放过，而是明确标为「未判定」。<br>' + lines.join('<br>') + '</div>';
+  } else {
+    naBox.innerHTML = '';
+  }
+}
+
+/* 工件卡变动时同步参数面板的材料 */
+function syncParamsFromCard(card){
+  var ms = document.getElementById('p-mat');
+  if(ms && card && card.material) ms.value = card.material;
+  runThread();
+}
+
+/* ========== M3：刀具与对刀 ========== */
+var TIP_TABLE = [
+  {type:'外圆刀', dir:'车外圆（右→左）', tip:3, comp:'G42', note:'外圆右手刀，最常用'},
+  {type:'外圆刀', dir:'车端面（外→内）', tip:3, comp:'G42', note:'同一把刀车端面，方位号仍为 3'},
+  {type:'内孔刀', dir:'车内孔（孔口向内）', tip:2, comp:'G41', note:'内孔刀反向偏置'},
+  {type:'切槽刀', dir:'径向切槽', tip:4, comp:'G40', note:'径向切入，不用刀补'},
+  {type:'切断刀', dir:'径向切断', tip:4, comp:'G40', note:'切断同样不用刀补'},
+  {type:'螺纹刀', dir:'车螺纹（右→左）', tip:3, comp:'G40', note:'螺纹按牙型走刀，不用刀补'}
+];
+function tipInfo(type, dir){
+  for(var i = 0; i < TIP_TABLE.length; i++){
+    if(TIP_TABLE[i].type === type && TIP_TABLE[i].dir === dir) return TIP_TABLE[i];
+  }
+  return null;
+}
+function offsetFix(measured, program){
+  var dm = Number(measured), dp = Number(program);
+  if(!(dm > 0) || !(dp > 0)) return null;
+  var d = round2(dm - dp);
+  return {
+    delta:d,
+    abs:round2(Math.abs(d)),
+    dir:(d > 0 ? '实际偏大' : (d < 0 ? '实际偏小' : '刚好')),
+    note:(d === 0 ? '无需修正' : '直接在 X 磨损补偿里 ' + (d > 0 ? '减' : '加') + ' ' + round2(Math.abs(d)) + 'mm')
+  };
+}
+
+/* ========== 找错练习：10 种变异 ========== */
+function tplCodeOf(id){
+  for(var i = 0; i < TEMPLATES.length; i++) if(TEMPLATES[i].id === id) return TEMPLATES[i].code;
+  return TEMPLATES[3].code;
+}
+var MUTATIONS = [
+  {id:'m01', name:'漏写 G50 最高转速限制', rule:'P02', base:'g71',
+   apply:function(c){ return c.replace('G50 S1800;\n', ''); }},
+  {id:'m02', name:'X 值按半径写（应写直径）', rule:'P04', base:'g71',
+   apply:function(c){ return c.replace(/X(\d+(?:\.\d+)?)/g, function(m, n){ return 'X' + (parseFloat(n) / 2); }); }},
+  {id:'m03', name:'刀号与刀补号不一致', rule:'S07', base:'g71',
+   apply:function(c){ return c.replace('T0101;', 'T0102;'); }},
+  {id:'m04', name:'G71 漏写 Q 段号', rule:'C01', base:'g71',
+   apply:function(c){ return c.replace('G71 P10 Q20 U0.5 W0.1 F0.25;', 'G71 P10 U0.5 W0.1 F0.25;'); }},
+  {id:'m05', name:'没留精车余量', rule:'D01', base:'g71',
+   apply:function(c){ return c.replace('U0.5 W0.1', 'U0 W0'); }},
+  {id:'m06', name:'螺纹进给与螺距不符', rule:'M02', base:'g92',
+   apply:function(c){ return c.replace('F3.5;', 'F1.5;'); }},
+  {id:'m07', name:'切槽方向写反（X 比起点还大）', rule:'C11', base:'groove',
+   apply:function(c){ return c.replace('G75 X40 P2000 F0.08;', 'G75 X60 P2000 F0.08;'); }},
+  {id:'m08', name:'G76 牙高超过理论值', rule:'C13', base:'g76',
+   apply:function(c){ return c.replace('P2273', 'P3000'); }},
+  {id:'m09', name:'外圆刀配了 G41（方向反）', rule:'T04', base:'g71',
+   apply:function(c){ return c.replace('G01 Z0 F0.1;', 'G01 G41 Z0 F0.1;'); }},
+  {id:'m10', name:'漏写 M30', rule:'S02', base:'g71',
+   apply:function(c){ return c.replace(/M30;\s*$/, ''); }}
+];
+
+/* 确定性出题：同一个 seed 得到同一道题，便于断言与回放 */
+function makeDrill(seed){
+  var idx = Math.abs(Math.floor(seed || 0)) % MUTATIONS.length;
+  var m = MUTATIONS[idx];
+  var base = m.baseCode || tplCodeOf(m.base);
+  return {code:m.apply(base), mutation:m, index:idx};
+}
+
+/* ========== 题库与自动判分 ========== */
+var QUIZ = [
+  {id:'q1', q:'G71 第一行的 U 表示什么？', opts:['每刀切深（半径值）','X 向精车余量（直径值）','Z 向余量','退刀量'], ans:0,
+   why:'第一行 G71 U(Δd) R(e) 里的 U 是每刀切深，按半径值算；余量在第二行。'},
+  {id:'q2', q:'本机床 X 轴按直径编程，图样标 Φ50 应写：', opts:['X25','X50','X100','X0.05'], ans:1,
+   why:'直径编程下 X 直接写直径值，写 X25 会被当成 Φ25，直径小一半。'},
+  {id:'q3', q:'使用 G96 恒线速时必须配哪条指令？', opts:['G97','G50 S（限最高转速）','G96 不需要配','G21'], ans:1,
+   why:'直径趋近 0 时转速会飞到机床上限，必须用 G50 S 限速。'},
+  {id:'q4', q:'车三角螺纹时主轴应使用：', opts:['G96 恒线速','G97 恒转速','都可以','G94'], ans:1,
+   why:'恒线速下转速随直径变化，螺距就乱了；螺纹必须用 G97。'},
+  {id:'q5', q:'外圆右手刀（方位号 3）车外圆应配：', opts:['G41','G42','G40','不用刀补'], ans:1,
+   why:'方位号 3 的外圆刀配 G42；配成 G41 轮廓会整体偏一个刀尖半径。'},
+  {id:'q6', q:'G71 第二行的 U 表示：', opts:['每刀切深','X 向精车余量（直径值）','主轴转速','圆弧半径'], ans:1,
+   why:'同一个 U 在两行里含义不同，这是车削最容易混的地方。'},
+  {id:'q7', q:'G70 精车循环的 P/Q 应与谁一致？', opts:['随便写','粗车循环（G71/G72/G73）','子程序号','刀具号'], ans:1,
+   why:'不一致时精车走的是另一段形状，尺寸对不上。'},
+  {id:'q8', q:'轴上切断工件应使用：', opts:['G74','G75','G76','G90'], ans:1,
+   why:'G75 是径向切槽/切断循环，沿 X 向啄式进给。'},
+  {id:'q9', q:'G76 第一行的 P 参数是几位、含义是什么？', opts:['2 位，牙高','6 位：精车次数+退尾+牙型角','4 位，螺距','1 位，方向'], ans:1,
+   why:'P(m)(r)(a) 共 6 位，位数不足牙型角就无从解析。'},
+  {id:'q10', q:'T0102 表示：', opts:['1 号刀 + 1 号刀补','1 号刀 + 2 号刀补','102 号刀','2 号刀 + 1 号刀补'], ans:1,
+   why:'前两位刀号、后两位刀补号。刀号与刀补号不一致时轮廓会偏。'}
+];
+function gradeQuiz(answers){
+  var right = 0, detail = [];
+  QUIZ.forEach(function(item, i){
+    var a = (answers && answers[i] != null) ? Number(answers[i]) : -1;
+    var ok = (a === item.ans);
+    if(ok) right++;
+    detail.push({id:item.id, no:i + 1, picked:a, ans:item.ans, ok:ok, why:item.why});
+  });
+  return {right:right, total:QUIZ.length, score:Math.round(right / QUIZ.length * 100), detail:detail};
+}
+
+/* ========== 批量批改 ========== */
+function splitBySep(text){
+  return String(text == null ? '' : text)
+    .split(/\n\s*={3,}\s*\n/)
+    .map(function(x){ return x.trim(); })
+    .filter(function(x){ return x.length > 0; });
+}
+function runBatch(text, card){
+  var parts = splitBySep(text);
+  return parts.map(function(one, i){
+    var r = lintProgram(one, card);
+    var top = null;
+    for(var k = 0; k < r.issues.length; k++){
+      if(r.issues[k].lv === 'S' || r.issues[k].lv === 'E'){ top = r.issues[k]; break; }
+    }
+    if(!top && r.issues.length) top = r.issues[0];
+    return {
+      no:i + 1, segs:r.stats.stmt, score:r.score,
+      s:r.counts.s, e:r.counts.e, w:r.counts.w, i:r.counts.i,
+      top:top, judged:r.judged
+    };
+  });
+}
+function batchCsv(rows){
+  var head = '序号,段数,得分,阻断S,错误E,警告W,提示I,首要问题';
+  var body = rows.map(function(r){
+    return [r.no, r.segs, r.score, r.s, r.e, r.w, r.i,
+      '"' + (r.top ? r.top.code + ' ' + r.top.msg : '无') + '"'].join(',');
+  });
+  return head + '\n' + body.join('\n');
+}
+
+/* ========== 面板：批改 / 练习 / 刀具 ========== */
+var BATCH_DEMO = [
+  TEMPLATES[3].code,
+  TEMPLATES[3].code.replace('G50 S1800;\n', ''),
+  TEMPLATES[3].code.replace(/X(\d+(?:\.\d+)?)/g, function(m, n){ return 'X' + (parseFloat(n) / 2); }),
+  TEMPLATES[3].code.replace('U0.5 W0.1', 'U0 W0')
+];
+
+function renderBatch(rows){
+  var tb = document.getElementById('batch-out');
+  if(!tb) return;
+  if(!rows.length){ tb.innerHTML = '<tr><td colspan="5" class="empty">没有可批改的作业</td></tr>'; return; }
+  tb.innerHTML = rows.map(function(r){
+    var top = r.top ? (r.top.code + '：' + r.top.msg) : '未发现问题';
+    return '<tr><td>' + r.no + '</td><td>' + r.segs + '</td><td><b>' + r.score + '</b></td><td>' +
+      r.s + ' / ' + r.e + ' / ' + r.w + ' / ' + r.i + '</td><td>' + esc(top) + '</td></tr>';
+  }).join('');
+}
+
+function initBatch(){
+  var ta = document.getElementById('batch-input');
+  if(!ta) return;
+  ta.value = BATCH_DEMO.join('\n=====\n');
+  var rows = [];
+  function run(){
+    rows = runBatch(ta.value, state.card);
+    renderBatch(rows);
+    var avg = rows.length ? Math.round(rows.reduce(function(a, r){ return a + r.score; }, 0) / rows.length) : 0;
+    document.getElementById('batch-stat').textContent = rows.length + ' 份 · 平均 ' + avg + ' 分';
+  }
+  document.getElementById('batch-run').addEventListener('click', run);
+  document.getElementById('batch-demo').addEventListener('click', function(){
+    ta.value = BATCH_DEMO.join('\n=====\n'); run();
+  });
+  document.getElementById('batch-csv').addEventListener('click', function(){
+    var blob = new Blob([batchCsv(rows)], {type:'text/csv;charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '批改结果.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+  run();
+}
+
+var drillState = {current:null, right:0, total:0, seed:1};
+
+function initDrill(){
+  var sel = document.getElementById('drill-guess');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">— 选择你认为出错的地方 —</option>' + RULES.map(function(r){
+    return '<option value="' + r.code + '">' + r.code + ' ' + esc(r.title) + '</option>';
+  }).join('');
+
+  function next(){
+    drillState.seed = Math.floor(Math.random() * 100000);
+    var d = makeDrill(drillState.seed);
+    drillState.current = d;
+    document.getElementById('drill-code').textContent = d.code;
+    document.getElementById('drill-out').innerHTML = '';
+    document.getElementById('drill-guess').value = '';
+    document.getElementById('drill-stat').textContent = '第 ' + (drillState.total + 1) + ' 题 · 已对 ' + drillState.right + ' 题';
+  }
+  var modeSel = document.getElementById('drill-mode');
+  var quizWrap = document.getElementById('quiz-wrap');
+  function renderQuiz(){
+    var box = document.getElementById('quiz-box');
+    box.innerHTML = QUIZ.map(function(item, i){
+      return '<div class="help-item"><h3>' + (i + 1) + '. ' + esc(item.q) + '</h3>' +
+        item.opts.map(function(o, j){
+          return '<label style="display:block;font-size:13px;color:var(--sub);margin:2px 0">' +
+            '<input type="radio" name="q' + i + '" value="' + j + '"> ' + esc(o) + '</label>';
+        }).join('') + '</div>';
+    }).join('');
+  }
+  function switchMode(){
+    var quiz = modeSel.value === 'quiz';
+    quizWrap.style.display = quiz ? '' : 'none';
+    ['drill-code', 'drill-out', 'drill-guess', 'drill-check', 'drill-new'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.style.display = quiz ? 'none' : '';
+    });
+    if(quiz && !document.getElementById('quiz-box').innerHTML) renderQuiz();
+  }
+  modeSel.addEventListener('change', switchMode);
+  document.getElementById('quiz-submit').addEventListener('click', function(){
+    var answers = QUIZ.map(function(_, i){
+      var el = document.querySelector('input[name="q' + i + '"]:checked');
+      return el ? Number(el.value) : -1;
+    });
+    var g = gradeQuiz(answers);
+    document.getElementById('quiz-stat').textContent = g.right + ' / ' + g.total + ' 题 · ' + g.score + ' 分';
+    document.getElementById('quiz-out').innerHTML = g.detail.filter(function(d){ return !d.ok; }).map(function(d){
+      return '<div class="lint-item"><div class="top"><span class="lv W">第 ' + d.no + ' 题</span>' +
+        '<span class="lint-msg">正确答案：' + esc(QUIZ[d.no - 1].opts[d.ans]) + '</span></div>' +
+        '<div class="lint-why">为什么：' + esc(d.why) + '</div></div>';
+    }).join('') || '<div class="lint-none">全部答对。</div>';
+  });
+
+  document.getElementById('drill-new').addEventListener('click', next);
+  document.getElementById('drill-check').addEventListener('click', function(){
+    if(!drillState.current) return;
+    var m = drillState.current.mutation;
+    var guess = document.getElementById('drill-guess').value;
+    var rule = RULES.filter(function(r){ return r.code === m.rule; })[0];
+    drillState.total++;
+    var ok = guess === m.rule;
+    if(ok) drillState.right++;
+    document.getElementById('drill-out').innerHTML =
+      '<div class="lint-item">' +
+        '<div class="top"><span class="lv ' + (ok ? 'I' : 'W') + '">' + (ok ? '答对' : '答错') + '</span>' +
+        '<span class="lint-code">' + m.rule + '</span><span class="lint-msg">' + esc(m.name) + '</span></div>' +
+        '<div class="lint-why">为什么：' + esc(rule ? rule.why : '') + '</div>' +
+        '<div class="lint-fix">怎么改：' + esc(rule ? rule.fix : '') + '</div>' +
+      '</div>';
+    document.getElementById('drill-stat').textContent = '第 ' + drillState.total + ' 题 · 已对 ' + drillState.right + ' 题';
+  });
+  next();
+}
+
+function initTools(){
+  var tb = document.getElementById('tool-rows');
+  if(!tb) return;
+
+  function rowsHtml(list){
+    return list.map(function(t, i){
+      return '<tr data-i="' + i + '">' +
+        '<td><input type="number" min="1" max="99" value="' + t.t + '" data-f="t"></td>' +
+        '<td><select data-f="type">' + TOOL_TYPES.map(function(x){
+          return '<option value="' + x + '"' + (x === t.type ? ' selected' : '') + '>' + x + '</option>';
+        }).join('') + '</select></td>' +
+        '<td><input type="number" min="0" max="5" step="0.1" value="' + t.r + '" data-f="r"></td>' +
+        '<td><input type="number" min="1" max="9" value="' + t.tip + '" data-f="tip"></td>' +
+        '<td><input type="number" min="0" max="20" step="0.5" value="' + t.blade + '" data-f="blade"></td>' +
+      '</tr>';
+    }).join('');
+  }
+  tb.innerHTML = rowsHtml(state.card.tools);
+
+  document.getElementById('tool-save').addEventListener('click', function(){
+    var list = [];
+    Array.prototype.forEach.call(tb.querySelectorAll('tr'), function(tr){
+      var item = {};
+      Array.prototype.forEach.call(tr.querySelectorAll('[data-f]'), function(el){
+        var f = el.getAttribute('data-f');
+        item[f] = (f === 'type') ? el.value : Number(el.value);
+      });
+      list.push(item);
+    });
+    var card = cardNormalize({blankD:state.card.blankD, blankL:state.card.blankL, clampLen:state.card.clampLen,
+      partLen:state.card.partLen, material:state.card.material, threadD:state.card.threadD,
+      threadP:state.card.threadP, tools:list});
+    applyCard(card, false);
+    tb.innerHTML = rowsHtml(card.tools);
+    document.getElementById('tool-stat').textContent = '已保存 ' + card.tools.length + ' 把刀';
+  });
+
+  var ts = document.getElementById('tip-type');
+  var ds = document.getElementById('tip-dir');
+  ts.innerHTML = TOOL_TYPES.map(function(x){ return '<option value="' + x + '">' + x + '</option>'; }).join('');
+  function fillDirs(){
+    var dirs = TIP_TABLE.filter(function(x){ return x.type === ts.value; }).map(function(x){ return x.dir; });
+    ds.innerHTML = dirs.map(function(d){ return '<option value="' + d + '">' + d + '</option>'; }).join('');
+    showTip();
+  }
+  function showTip(){
+    var r = tipInfo(ts.value, ds.value);
+    var out = document.getElementById('tip-out');
+    if(!r){ out.innerHTML = ''; return; }
+    out.innerHTML = statBox('刀尖方位号', String(r.tip), r.note, 'hi') +
+      statBox('补偿指令', r.comp, r.comp === 'G40' ? '该工序不建立刀补' : '与方位号配套', '') +
+      statBox('对应刀型', r.type, r.dir, '');
+  }
+  ts.addEventListener('change', fillDirs);
+  ds.addEventListener('change', showTip);
+  fillDirs();
+
+  function showOffset(){
+    var r = offsetFix(document.getElementById('of-m').value, document.getElementById('of-p').value);
+    var out = document.getElementById('of-out');
+    if(!r){ out.innerHTML = statBox('无法计算', '请输入正数直径', '', 'warn'); return; }
+    out.innerHTML = statBox('直径差', (r.delta > 0 ? '+' : '') + fmtNum(r.delta) + ' mm', r.dir, r.delta === 0 ? '' : 'hi') +
+      statBox('X 补偿修正', r.abs + ' mm', r.note, '') +
+      statBox('Z 向', '0', '端面轻切后该位置即 Z0', '');
+  }
+  ['of-m', 'of-p'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.addEventListener('input', showOffset);
+  });
+  showOffset();
+}
+
+/* ========== M4：帮助与讲义 ========== */
+var HELP = [
+  {id:'h1', t:'从这里开始：先填工件卡', p:'顶部工件卡是全局工艺上下文：毛坯直径与长度、夹持长度、零件长度、材料、螺纹规格。校验有 13 条规则要靠它判定，刀具表也挂在这里。填完会自动保存在本机，换电脑时用「导出工件卡」带走。',
+   l:['毛坯长 − 夹持长 = 可加工长度，零件长度不能超过它', '毛坯直径决定「X 是否按半径写」这条阻断级规则的判定', '材料影响线速度上限与进给范围']},
+  {id:'h2', t:'代码速查与程序编辑器', p:'速查收录 G 42 条 + M 12 条，G50 / G90 / G92 / G94 四个指令在车床上有两种含义，卡片里单独标注。编辑器有 10 个工艺模板与 14 条快捷片段，点模板名载入，点片段插到光标处。',
+   l:['模板从车端面一直到综合件（外圆 + 槽 + 螺纹）', '正文自动保存，刷新不丢', '「送去解释」会把当前程序带到解释面板']},
+  {id:'h3', t:'参数计算怎么读', p:'线速度 vc 与每转进给 f 由材料表给出，转速 n = 1000·vc/(π·D)。G96 恒线速时转速随直径变小而升高，必须用 G50 S 限最高转速，界面会直接给出建议行。螺纹按教材经验口径 0.6495P 算牙深，另附标准基本牙型参考。',
+   l:['恒线速下超限速时，会回算真实线速度', '螺纹分刀按螺距自动选 4/5/6 刀', '切槽按刀宽算扩槽次数与残料']},
+  {id:'h4', t:'程序解释：为什么 G71 是整块翻译', p:'G71/G72/G73/G76 都是两行一组，第二行的 P/Q 指向轮廓起止段号。夹在 N(P) 到 N(Q) 之间的轮廓段会被循环反复调用，不会按顺序单独执行——所以解释器把它们标成「属于 G71 轮廓段」，只在块头给一句完整说明。',
+   l:['地址字 U 在第一行是切深、第二行是直径余量、G01 里是增量', 'G50 带 S 是限速，带 X/Z 是设坐标系', 'G90 单独出现是绝对值编程，带坐标才是外圆循环']},
+  {id:'h5', t:'程序校验：四级与「未判定」', p:'50 条规则分 S（阻断）/ E（错误）/ W（警告）/ I（提示）。S 级直接判 0 分，包括：无 O 号、P/Q 段不存在、G76 的 P 位数不足、刀号不在刀具表、X 按半径写、Z 进入夹持区。每条都给「为什么错」和「怎么改」。',
+   l:['分数口径：S 阻断 → 0；E −10；W −4；I 不计分', '缺工件卡数据时规则进「未判定」，不会静默放过', '未判定项按缺失字段归并，补完自动重算']},
+  {id:'h6', t:'刀轨演示怎么用', p:'蓝色是切削、灰虚线是快速移动、青绿是循环轮廓段，粉色是当前段。左侧 X 轴可切直径与半径两种刻度。进度条或表格行都能定位到具体语句。',
+   l:['刻度按切削段定，退刀点不参与取景', '圆弧目前按弦线绘制，表格里标为「圆弧」', '毛坯按工件卡绘制，改毛坯尺寸图会跟着变']},
+  {id:'h7', t:'批改与找错练习', p:'批量批改用一行 ===== 分隔多份作业，按同一份工件卡和同一套评分口径打分，可导出 CSV。找错练习从 10 种典型错误里注入一处，先自己判断再对答案。',
+   l:['批改的分数与校验面板完全同源', '出题用随机种子，同一题可回放', '每种变异都必须能被指定规则检出，有断言保证']},
+  {id:'h8', t:'刀具与对刀', p:'刀具表是刀具参数的唯一来源，刀尖半径与方位号直接参与校验与刀轨计算。方位号判定器给出刀型 × 走刀方向对应的方位号与补偿指令；试切对刀按直径差给出 X 补偿修正量。',
+   l:['外圆右手刀方位号 3，配 G42', '内孔刀方位号 2，配 G41', '切槽、切断、螺纹不用刀补']},
+  {id:'h9', t:'常见问题', p:'',
+   l:['为什么我的程序不报错却尺寸不对？先看工件卡毛坯直径是否正确，再看 X 是否按半径写。',
+      '为什么模板也扣分？模板本身 0 个 S/E，若扣分说明改坏了某处，点校验看具体行号。',
+      '为什么某条规则显示「未判定」？缺对应字段，按提示补工件卡后自动重算。',
+      '生成的程序能直接上机吗？不能。必须空运行 + 首件试切，教学工具不替代工艺验证。']}
+];
+
+function helpSearch(keyword){
+  var q = String(keyword == null ? '' : keyword).trim().toLowerCase();
+  if(!q) return HELP;
+  return HELP.filter(function(h){
+    var bag = (h.t + ' ' + h.p + ' ' + (h.l || []).join(' ') + ' ' + h.id).toLowerCase();
+    return bag.indexOf(q) >= 0;
+  });
+}
+
+/* 讲义：把当前程序、得分、问题清单、轨迹统计拼成 Markdown */
+function handoutText(program, card){
+  card = cardNormalize(card || CARD_DEFAULT);
+  var R = lintProgram(program, card);
+  var P = parseProgram(program);
+  walkRows(P);
+  var path = buildPath(P, card);
+  var lines = [];
+  lines.push('# 数控车削编程讲义');
+  lines.push('');
+  lines.push('生成时间：' + new Date().toLocaleString('zh-CN'));
+  lines.push('');
+  lines.push('## 一、工件与刀具');
+  lines.push('- 毛坯：Φ' + card.blankD + ' × ' + card.blankL + ' mm，夹持 ' + card.clampLen + ' mm，零件长 ' + card.partLen + ' mm');
+  lines.push('- 材料：' + (materialOf(card.material) ? materialOf(card.material).name : card.material));
+  lines.push('- 螺纹：M' + card.threadD + '×' + card.threadP);
+  lines.push('- 刀具：' + card.tools.map(function(t){ return 'T' + t.t + ' ' + t.type + '(R' + t.r + ',方位' + t.tip + ')'; }).join('；'));
+  lines.push('');
+  lines.push('## 二、程序（' + P.stats.stmt + ' 段，' + P.stats.blocks + ' 个循环块）');
+  lines.push('```');
+  lines.push(String(program).trim());
+  lines.push('```');
+  lines.push('');
+  lines.push('## 三、校验结果：' + R.score + ' 分（S' + R.counts.s + ' / E' + R.counts.e + ' / W' + R.counts.w + ' / I' + R.counts.i + '）');
+  if(!R.issues.length) lines.push('未发现问题。');
+  R.issues.forEach(function(it){
+    lines.push('- [' + it.lv + '] ' + it.code + (it.line ? '（第 ' + it.line + ' 行）' : '') + ' ' + it.msg);
+    lines.push('  - 为什么：' + it.why);
+    lines.push('  - 怎么改：' + it.fix);
+  });
+  if(R.na.length){
+    lines.push('');
+    lines.push('未判定 ' + R.na.length + ' 条（缺工件卡数据）：' + R.na.map(function(n){ return n.code; }).join('、'));
+  }
+  lines.push('');
+  lines.push('## 四、轨迹统计');
+  lines.push('- 共 ' + path.segs.length + ' 段（切削 ' + path.counts.cut + ' · 圆弧 ' + path.counts.arc + ' · 快速 ' + path.counts.rapid + '）');
+  lines.push('- 切削最大直径 Φ' + round2(path.cutMaxX) + ' mm，最深 Z' + round2(path.minZ) + ' mm');
+  lines.push('');
+  lines.push('> 生成程序未经真实试切验证，必须空运行 + 首件试切后再用于生产。');
+  return lines.join('\n');
+}
+
+function initHelp(){
+  var out = document.getElementById('help-out');
+  if(!out) return;
+
+  function render(q){
+    var list = helpSearch(q);
+    out.innerHTML = list.map(function(h){
+      return '<div class="help-item"><h3>' + esc(h.t) + '</h3>' +
+        (h.p ? '<p>' + esc(h.p) + '</p>' : '') +
+        (h.l && h.l.length ? '<ul>' + h.l.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '') +
+      '</div>';
+    }).join('') || '<div class="empty">没有匹配的条目</div>';
+    document.getElementById('help-stat').textContent = list.length + ' / ' + HELP.length + ' 条';
+  }
+  document.getElementById('help-q').addEventListener('input', function(e){ render(e.target.value); });
+  document.getElementById('help-export').addEventListener('click', function(){
+    var ta = document.getElementById('prog');
+    var md = handoutText(ta ? ta.value : '', state.card);
+    var blob = new Blob([md], {type:'text/markdown;charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '车削编程讲义.md';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+  render('');
+}
+
+function initPresent(){
+  var btn = document.getElementById('present-btn');
+  if(!btn) return;
+  btn.addEventListener('click', function(){
+    var on = document.body.classList.toggle('present');
+    btn.textContent = on ? '退出大屏' : '大屏模式';
+  });
+}
+
+/* ========== 初始化 ========== */
+function boot(){
+  document.getElementById('ver').textContent = VERSION;
+
+  var ms = document.getElementById('c-mat');
+  ms.innerHTML = MATERIALS.map(function(m){
+    return '<option value="' + esc(m.k) + '">' + esc(m.name) + '</option>';
+  }).join('');
+
+  var tp = document.getElementById('c-tp');
+  tp.innerHTML = THREADS.map(function(t){
+    return '<option value="' + t.p + '">' + esc(String(t.p)) + '</option>';
+  }).join('');
+
+  var card = loadCard();
+  state.card = card;
+  fillCardForm(card);
+  renderCardIssues(cardValidate(card));
+
+  var map = {blankD:'bd', blankL:'bl', clampLen:'cl', partLen:'pl', threadD:'td', threadP:'tp'};
+  Object.keys(map).forEach(function(k){
+    var el = document.getElementById('c-' + map[k]);
+    if(el) el.addEventListener('input', function(){ applyCard(readCardForm(), false); });
+  });
+  ms.addEventListener('change', function(){ applyCard(readCardForm(), false); });
+  tp.addEventListener('change', function(){ applyCard(readCardForm(), false); });
+
+  document.getElementById('c-reset').addEventListener('click', function(){
+    applyCard(cardNormalize(CARD_DEFAULT), true);
+  });
+  document.getElementById('c-export').addEventListener('click', function(){
+    var blob = new Blob([exportCard(state.card)], {type:'application/json'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '工件卡-' + state.card.blankD + 'x' + state.card.blankL + '.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+  var file = document.getElementById('c-file');
+  document.getElementById('c-import').addEventListener('click', function(){ file.click(); });
+  file.addEventListener('change', function(){
+    var f = file.files && file.files[0];
+    if(!f) return;
+    var rd = new FileReader();
+    rd.onload = function(){
+      var r = importCard(String(rd.result));
+      if(r.ok){ applyCard(r.card, true); }
+      else { renderCardIssues([{level:'bad', msg:'导入失败：' + r.err}]); }
+      file.value = '';
+    };
+    rd.readAsText(f);
+  });
+
+  renderChips();
+  document.getElementById('chips').addEventListener('click', function(e){
+    var b = e.target.closest('.chip');
+    if(!b) return;
+    state.cat = b.getAttribute('data-cat');
+    renderChips();
+    renderCodes();
+  });
+  document.getElementById('q').addEventListener('input', function(e){
+    state.q = e.target.value;
+    renderCodes();
+  });
+  renderCodes();
+
+  var nav = document.getElementById('nav');
+  nav.addEventListener('click', function(e){
+    var b = e.target.closest('button[data-p]');
+    if(!b) return;
+    var id = b.getAttribute('data-p');
+    Array.prototype.forEach.call(nav.querySelectorAll('button'), function(x){
+      if(x === b) x.setAttribute('aria-current', 'page'); else x.removeAttribute('aria-current');
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.panel'), function(p){
+      p.classList.toggle('active', p.id === 'panel-' + id);
+    });
+  });
+
+  initEditor();
+  initParams();
+  initExplain();
+  initLint();
+  initPath();
+  initBatch();
+  initDrill();
+  initTools();
+  initHelp();
+  initPresent();
+}
+
+if(typeof document !== 'undefined' && document && document.getElementById && document.getElementById('nav')){
+  boot();
+}
+
+/* ========== 对外暴露（供测试用） ========== */
+var TURN = {
+  VERSION:VERSION,
+  GCODES:GCODES, MCODES:MCODES, MATERIALS:MATERIALS, THREADS:THREADS,
+  TEMPLATES:TEMPLATES, SNIPPETS:SNIPPETS,
+  CARD_DEFAULT:CARD_DEFAULT, PASS_W:PASS_W,
+  round2:round2, roundHalf:roundHalf, calcRpm:calcRpm, clampRpm:clampRpm,
+  threadBasic:threadBasic, threadPasses:threadPasses,
+  cardNormalize:cardNormalize, cardValidate:cardValidate,
+  materialOf:materialOf, threadLabel:threadLabel, threadByDP:threadByDP,
+  exportCard:exportCard, importCard:importCard,
+  tokenize:tokenize, parseProgram:parseProgram, explainProgram:explainProgram,
+  blockText:blockText, g76Head:g76Head, pad2:pad2,
+  calcParams:calcParams, pickPassCount:pickPassCount, groovePasses:groovePasses,
+  RULES:RULES, lintProgram:lintProgram, scoreOf:scoreOf, walkRows:walkRows, buildPath:buildPath,
+  TIP_TABLE:TIP_TABLE, tipInfo:tipInfo, offsetFix:offsetFix,
+  MUTATIONS:MUTATIONS, makeDrill:makeDrill,
+  splitBySep:splitBySep, runBatch:runBatch, batchCsv:batchCsv,
+  HELP:HELP, helpSearch:helpSearch, handoutText:handoutText,
+  QUIZ:QUIZ, gradeQuiz:gradeQuiz, arcPoints:arcPoints, noseResidual:noseResidual,
+  toolsNormalize:toolsNormalize, TOOL_DEFAULT:TOOL_DEFAULT,
+  cardDefault:function(){ return cardNormalize(CARD_DEFAULT); }
+};
+if(typeof window !== 'undefined') window.TURN = TURN;
+</script>
+</body>
+</html>
