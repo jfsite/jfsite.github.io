@@ -832,6 +832,55 @@ img, svg {
   font-size: 0.74rem;
 }
 
+/* ---------- 8b. 上线成效 ---------- */
+.impact {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.78fr);
+  gap: clamp(28px, 5vw, 60px);
+  align-items: center;
+}
+
+.impact__body h2 {
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  line-height: 1.32;
+  letter-spacing: -0.01em;
+  font-weight: 650;
+}
+
+.impact__lead {
+  margin-top: 16px;
+  color: var(--text-muted);
+  font-size: clamp(0.95rem, 1.7vw, 1.02rem);
+  max-width: 36em;
+}
+
+.impact__note {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--border-strong);
+  color: var(--text-faint);
+  font-size: 0.78rem;
+}
+
+.impact__figure {
+  margin: 0;
+}
+
+.impact__figure img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.impact__figure figcaption {
+  margin-top: 10px;
+  color: var(--text-faint);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
 /* ---------- 9. 关于 ---------- */
 .about {
   display: grid;
@@ -952,8 +1001,16 @@ img, svg {
 @media (max-width: 900px) {
   .hero__inner,
   .feature,
-  .about {
+  .about,
+  .impact {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* 竖版海报在窄屏置顶，限宽避免过长 */
+  .impact__figure {
+    order: -1;
+    max-width: 440px;
+    margin-inline: auto;
   }
 
   .hero__figure {
