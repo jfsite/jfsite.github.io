@@ -926,6 +926,47 @@ img, svg {
   font-size: 0.88rem;
 }
 
+/* ---------- 10b. 下载 ---------- */
+.downloads {
+  border-top: 1px solid var(--border);
+}
+
+.dl-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: clamp(12px, 3vw, 28px);
+  padding: 18px 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.dl-item__name {
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+  line-height: 1.5;
+}
+
+.dl-item__desc {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.dl-item__size {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.downloads__note {
+  margin-top: 20px;
+  color: var(--text-faint);
+  font-size: 0.82rem;
+  line-height: 1.8;
+}
+
 /* ---------- 10. 联系 ---------- */
 .contact__lead {
   max-width: 46em;
@@ -939,6 +980,12 @@ img, svg {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
   margin-top: 30px;
+}
+
+/* 只有两项时不必撑满整行 */
+.contact__grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 680px;
 }
 
 .contact__item {
@@ -1087,6 +1134,20 @@ img, svg {
 
   .stats {
     gap: 14px 28px;
+  }
+
+  /* 下载行在窄屏收成两列，体积数字让位给按钮 */
+  .dl-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 6px;
+  }
+
+  .dl-item__size {
+    display: none;
+  }
+
+  .contact__grid--two {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
